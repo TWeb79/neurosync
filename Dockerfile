@@ -6,11 +6,6 @@ LABEL description="NeuroSync - Adaptive Brainwave Audio Studio"
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
-    build-essential \
-    portaudio19-dev \
-    libsndfile1 \
-    qt6-base-dev \
-    python3-dev \
     python3-pip \
     python3-venv \
     && rm -rf /var/lib/apt/lists/*
@@ -21,6 +16,9 @@ RUN pip3 install --no-cache-dir --break-system-packages -r requirements.txt
 
 COPY . .
 
-ENV PYTHONUNBUFFERED=1
+ENV PYTHONUNBUFFERED=1 \
+    PORT=8045
 
-CMD ["python3", "-m", "neurosync.app.main"]
+EXPOSE 8045
+
+CMD ["python3", "-m", "neurosync.app.web"]
