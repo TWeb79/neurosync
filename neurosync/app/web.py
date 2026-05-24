@@ -34,7 +34,7 @@ def read_root():
             .ear-freq { color: #00ffff; font-size: 1.2em; margin-top: 5px; }
             
             .brain-middle { flex: 0 0 80px; text-align: center; }
-            .hemisync-display { width: 80px; height: 80px; margin: 0 auto; background: radial-gradient(circle, #ff0066 0%, #0a0a2a 70%); border-radius: 50%; border: 3px solid #ff0066; display: flex; align-items: center; justify-content: center; font-size: 1.5em; font-weight: bold; color: #ff0066; animation: beat-pulse 0.5s infinite; }
+            .hemisync-display { width: 80px; height: 80px; margin: 0 auto; background: radial-gradient(circle, #ff0066 0%, #0a0a2a 70%); border-radius: 50%; border: 3px solid #ff0066; display: flex; align-items: center; justify-content: center; font-size: 1.5em; font-weight: bold; color: #ff0066; animation: beat-pulse var(--beat-duration, 0.5s) infinite; }
             @keyframes beat-pulse { 0%, 100% { transform: scale(1); box-shadow: 0 0 20px #ff0066; } 50% { transform: scale(1.1); box-shadow: 0 0 40px #ff0066, 0 0 60px #ff0066; } }
             .hemisync-label { margin-top: 10px; color: #ff0066; font-weight: bold; }
             
@@ -146,6 +146,8 @@ def read_root():
                 document.getElementById('left-freq').textContent = carrierFreq + ' Hz';
                 document.getElementById('right-freq').textContent = (carrierFreq + beatFreq) + ' Hz';
                 
+                document.getElementById('beat-freq').style.animationDuration = (1/beatFreq) + 's';
+                
                 if (leftOsc && rightOsc) {
                     leftOsc.frequency.setValueAtTime(carrierFreq, audioCtx.currentTime);
                     rightOsc.frequency.setValueAtTime(carrierFreq + beatFreq, audioCtx.currentTime);
@@ -173,6 +175,7 @@ def read_root():
                 document.getElementById('beat-freq').textContent = beat;
                 document.getElementById('left-freq').textContent = carrier + ' Hz';
                 document.getElementById('right-freq').textContent = (carrier + beat) + ' Hz';
+                document.getElementById('beat-freq').style.animationDuration = (1/beat) + 's';
                 
                 if (leftOsc && rightOsc) {
                     leftOsc.frequency.setValueAtTime(carrier, audioCtx.currentTime);
