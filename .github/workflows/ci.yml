@@ -1,0 +1,22 @@
+name: NeuroSync CI
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PortAudio
+        run: sudo apt-get install -y portaudio19-dev libsndfile1
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - name: Install deps
+        run: pip install -e ".[dev]"
+      - name: Lint (ruff)
+        run: ruff check neurosync/
+      - name: Type check (mypy)
+        run: mypy neurosync/ --ignore-missing-imports
+      - name: Run tests
+        run: pytest tests/ --cov=neurosync --cov-report=xml
+      - name: Coverage gate
+        run: coverage report --fail-under=80

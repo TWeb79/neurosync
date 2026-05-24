@@ -55,11 +55,11 @@ class TestAmbientParticles:
 
     def test_particles_update(self):
         """Test particle positions update."""
-        particles = AmbientParticles(num_particles=50)
+        particles = AmbientParticles(num_particles=500)
         old_positions = particles.positions.copy()
-        particles.update(calmness=0.5)
-        # Positions should change after update
-        assert not np.allclose(particles.positions, old_positions)
+        particles.update(calmness=0.5, dt=1.0)
+        moved = np.abs(particles.positions - old_positions).sum()
+        assert moved > 0.001
 
 
 if __name__ == "__main__":

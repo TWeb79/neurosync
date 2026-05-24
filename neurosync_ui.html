@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeuroSync — Adaptive Brainwave Audio Studio v0.2.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;600&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & base ─────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --c-bg:          #050508;
+  --c-surface:     #0c0c14;
+  --c-surface2:    #13131f;
+  --c-border:      rgba(0,255,200,0.12);
+  --c-glow:        rgba(0,255,200,0.30);
+  --c-cyan:        #00ffc8;
+  --c-cyan-d:      rgba(0,255,200,0.12);
+  --c-violet:      #8b5cf6;
+  --c-violet-d:    rgba(139,92,246,0.14);
+  --c-rose:        #f43f5e;
+  --c-amber:       #f59e0b;
+  --c-text:        #e2e8f0;
+  --c-dim:         #64748b;
+  --c-hint:        #1e293b;
+  --beat-ms:       100ms;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--c-bg);
+  color: var(--c-text);
+}
+
+/* ── Background canvas ────────────────────────────────────────────── */
+#bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.35;
+  z-index: 0;
+}
+
+/* ── Layout shell ─────────────────────────────────────────────────── */
+#shell {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── Header ───────────────────────────────────────────────────────── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 24px;
+  border-bottom: 1px solid var(--c-border);
+  flex-shrink: 0;
+  background: rgba(5,5,8,0.7);
+  backdrop-filter: blur(8px);
+}
+
+.logo {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  color: var(--c-cyan);
+  letter-spacing: 3px;
+  text-shadow: 0 0 18px rgba(0,255,200,0.4);
+}
+.logo span { color: var(--c-violet); }
+
+.version {
+  font-size: 10px;
+  color: var(--c-dim);
+  letter-spacing: 1px;
+  margin-left: 12px;
+}
+
+.status-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.status-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--c-cyan);
+  box-shadow: 0 0 8px var(--c-cyan);
+  animation: blink 2s ease-in-out infinite;
+}
+.status-dot.idle { background: var(--c-dim); box-shadow: none; animation: none; }
+.status-label {
+  font-size: 10px;
+  color: var(--c-dim);
+  letter-spacing: 1px;
+}
+
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+/* ── Main two-column grid ─────────────────────────────────────────── */
+main {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Left panel ───────────────────────────────────────────────────── */
+.left-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 20px 18px 24px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--c-hint) transparent;
+}
+
+/* ── Right panel ──────────────────────────────────────────────────── */
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 20px;
+  border-left: 1px solid var(--c-border);
+  background: rgba(0,0,0,0.20);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--c-hint) transparent;
+}
+
+/* ── Section title ────────────────────────────────────────────────── */
+.section-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: var(--c-dim);
+  text-transform: uppercase;
+}
+
+/* ── Glass card utility ───────────────────────────────────────────── */
+.glass {
+  background: rgba(12,12,20,0.80);
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+}
+.glass:hover { border-color: rgba(0,255,200,0.25); }
+
+/* ── Brain SVG wrapper ────────────────────────────────────────────── */
+.brain-wrap {
+  display: flex;
+  justify-content: center;
+}
+#brain-svg {
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  overflow: visible;
+}
+
+/* ── Frequency readout ────────────────────────────────────────────── */
+.freq-display {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.freq-block {
+  flex: 1;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  padding: 10px 14px;
+  text-align: center;
+}
+.freq-block.beat-block {
+  flex: 0.65;
+  border-color: rgba(255,255,255,0.10);
+}
+.freq-num {
+  font-family: 'Orbitron', monospace;
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1;
+}
+.freq-num.left  { color: var(--c-cyan); }
+.freq-num.right { color: var(--c-violet); }
+.freq-num.beat  { color: #ffffff; }
+.freq-lbl {
+  font-size: 9px;
+  color: var(--c-dim);
+  letter-spacing: 1.5px;
+  margin-top: 5px;
+  text-transform: uppercase;
+}
+
+/* ── Waveform canvas ──────────────────────────────────────────────── */
+.wave-wrap {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  padding: 4px 0 0;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+#wave-canvas {
+  display: block;
+  width: 100%;
+  height: 100px;
+}
+
+/* ── Brainwave band bar ───────────────────────────────────────────── */
+.band-bar {
+  display: flex;
+  gap: 2px;
+  height: 4px;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.band-seg {
+  flex: 1;
+  opacity: 0.30;
+  transition: opacity 0.4s ease;
+}
+.band-seg.active { opacity: 1; }
+
+.band-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 7px;
+}
+.band-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  transition: color 0.4s ease;
+}
+.band-meta {
+  font-size: 9px;
+  color: var(--c-dim);
+  margin-left: 6px;
+}
+.band-range {
+  font-size: 10px;
+  color: var(--c-dim);
+}
+
+/* ── Controls row ─────────────────────────────────────────────────── */
+.controls-row {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.play-btn {
+  background: var(--c-cyan-d);
+  border: 1px solid var(--c-cyan);
+  color: var(--c-cyan);
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 2px;
+  padding: 0 22px;
+  border-radius: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  text-shadow: 0 0 10px rgba(0,255,200,0.5);
+}
+.play-btn:hover {
+  background: rgba(0,255,200,0.22);
+  box-shadow: 0 0 20px rgba(0,255,200,0.18);
+}
+.play-btn.playing {
+  background: rgba(244,63,94,0.15);
+  border-color: var(--c-rose);
+  color: var(--c-rose);
+  text-shadow: 0 0 10px rgba(244,63,94,0.5);
+}
+.play-btn.playing:hover {
+  background: rgba(244,63,94,0.25);
+  box-shadow: 0 0 20px rgba(244,63,94,0.2);
+}
+
+/* ── Slider group ─────────────────────────────────────────────────── */
+.slider-group {
+  flex: 1;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  padding: 8px 14px;
+}
+.slider-group label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--c-dim);
+  letter-spacing: 1px;
+  margin-bottom: 7px;
+}
+.slider-group label span {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  color: var(--c-cyan);
+}
+
+input[type="range"] {
+  width: 100%;
+  height: 3px;
+  background: var(--c-hint);
+  border-radius: 2px;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 13px; height: 13px;
+  border-radius: 50%;
+  background: var(--c-cyan);
+  box-shadow: 0 0 8px var(--c-cyan);
+  transition: transform 0.1s;
+}
+input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+input[type="range"]::-moz-range-thumb {
+  width: 13px; height: 13px;
+  border-radius: 50%;
+  background: var(--c-cyan);
+  border: none;
+  box-shadow: 0 0 8px var(--c-cyan);
+}
+
+/* ── Layer toggles ────────────────────────────────────────────────── */
+.layers-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+.layer-toggle {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 9px;
+  padding: 8px 11px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+.layer-toggle:hover { border-color: rgba(255,255,255,0.18); }
+.layer-toggle.on {
+  border-color: var(--c-cyan);
+  background: var(--c-cyan-d);
+}
+.lt-label {
+  font-size: 9px;
+  letter-spacing: 0.5px;
+  color: var(--c-dim);
+  transition: color 0.2s;
+}
+.layer-toggle.on .lt-label { color: var(--c-cyan); }
+.lt-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--c-hint);
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.layer-toggle.on .lt-dot {
+  background: var(--c-cyan);
+  border-color: var(--c-cyan);
+  box-shadow: 0 0 6px var(--c-cyan);
+}
+
+/* ── Session timeline ─────────────────────────────────────────────── */
+.timeline {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: none;
+}
+.timeline.visible { display: block; }
+.tl-track {
+  height: 6px;
+  background: var(--c-hint);
+  border-radius: 3px;
+  position: relative;
+  margin: 10px 0 8px;
+}
+.tl-segments {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.tl-seg { height: 100%; opacity: 0.55; }
+.tl-needle {
+  position: absolute;
+  top: -5px;
+  width: 2px;
+  height: 16px;
+  background: #ffffff;
+  border-radius: 1px;
+  transform: translateX(-50%);
+  box-shadow: 0 0 6px rgba(255,255,255,0.6);
+  transition: left 1s linear;
+}
+.tl-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 8px;
+  color: var(--c-dim);
+  letter-spacing: 0.5px;
+}
+
+/* ── Knob canvas ──────────────────────────────────────────────────── */
+.knob-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0 4px;
+}
+#beat-knob { cursor: grab; }
+#beat-knob:active { cursor: grabbing; }
+
+/* ── Preset cards ─────────────────────────────────────────────────── */
+.presets {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.pcard {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  padding: 12px;
+  cursor: pointer;
+  transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+  position: relative;
+  overflow: hidden;
+}
+.pcard::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--pc-tint, rgba(0,255,200,0.10)) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.28s ease;
+  border-radius: 12px;
+  pointer-events: none;
+}
+.pcard:hover { transform: translateY(-2px); }
+.pcard:hover::before { opacity: 1; }
+.pcard.active {
+  border-color: var(--pc-solid, var(--c-cyan));
+  box-shadow: 0 0 18px var(--pc-glow, rgba(0,255,200,0.18));
+}
+.pcard.active::before { opacity: 1; }
+
+.pc-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 7px;
+}
+.pc-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 1.15;
+  color: var(--c-text);
+}
+.pc-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+.pc-desc {
+  font-size: 9px;
+  color: var(--c-dim);
+  line-height: 1.45;
+  margin-bottom: 8px;
+}
+.pc-hz {
+  font-family: 'Orbitron', monospace;
+  font-size: 13px;
+  font-weight: 400;
+}
+.pc-meta {
+  display: flex;
+  gap: 8px;
+  margin-top: 7px;
+  padding-top: 7px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+.pc-tag {
+  font-size: 8px;
+  color: var(--c-dim);
+  letter-spacing: 0.4px;
+}
+
+/* ── Headphone warning ────────────────────────────────────────────── */
+.warning {
+  background: rgba(245,158,11,0.07);
+  border: 1px solid rgba(245,158,11,0.22);
+  border-radius: 8px;
+  padding: 9px 11px;
+  font-size: 9px;
+  color: var(--c-amber);
+  line-height: 1.55;
+}
+
+/* ── Disclaimer ───────────────────────────────────────────────────── */
+.disclaimer {
+  font-size: 8px;
+  color: var(--c-hint);
+  text-align: center;
+  line-height: 1.6;
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid var(--c-border);
+}
+
+/* ── Right panel volume control ───────────────────────────────────── */
+.vol-group {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+.vol-group label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--c-dim);
+  letter-spacing: 1px;
+  margin-bottom: 7px;
+}
+.vol-group label span {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  color: var(--c-cyan);
+}
+
+/* ── Scrollbar ────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--c-hint); border-radius: 2px; }
+
+/* ── Responsive ───────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  html, body { overflow: auto; }
+  main { grid-template-columns: 1fr; }
+  .right-panel { border-left: none; border-top: 1px solid var(--c-border); }
+  #shell { height: auto; overflow: visible; }
+  .left-panel, .right-panel { overflow: visible; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+
+<body>
+<canvas id="bg"></canvas>
+
+<div id="shell">
+<header>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="logo">NEURO<span>SYNC</span></div>
+    <div class="version">v0.2.0 · 2026-05-24</div>
+  </div>
+  <div class="status-group">
+    <div class="status-dot idle" id="status-dot"></div>
+    <span class="status-label" id="status-label">READY</span>
+  </div>
+</header>
+
+<main>
+  <!-- ════════════════════ LEFT PANEL ════════════════════ -->
+  <div class="left-panel">
+
+    <!-- Brain SVG -->
+    <div class="brain-wrap">
+    <svg id="brain-svg" viewBox="0 0 440 265" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="lgGrad" cx="38%" cy="50%">
+          <stop offset="0%" stop-color="#00ffc8" stop-opacity="0.22"/>
+          <stop offset="100%" stop-color="#00ffc8" stop-opacity="0.02"/>
+        </radialGradient>
+        <radialGradient id="rgGrad" cx="62%" cy="50%">
+          <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.22"/>
+          <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0.02"/>
+        </radialGradient>
+        <clipPath id="lcClip"><rect x="28" y="18" width="188" height="218"/></clipPath>
+        <clipPath id="rcClip"><rect x="224" y="18" width="188" height="218"/></clipPath>
+      </defs>
+
+      <!-- Outer orbit ring — rotates slowly, pulses at beat freq -->
+      <ellipse id="beat-ring" cx="220" cy="128" rx="196" ry="114"
+        fill="none" stroke="#00ffc8" stroke-width="0.8"
+        opacity="0.25" stroke-dasharray="8 6"/>
+
+      <!-- Skull base -->
+      <ellipse cx="220" cy="128" rx="182" ry="104"
+        fill="#060610" stroke="rgba(0,255,200,0.18)" stroke-width="1"/>
+
+      <!-- Left hemisphere fill -->
+      <g clip-path="url(#lcClip)">
+        <ellipse id="lh-fill" cx="220" cy="128" rx="180" ry="102" fill="url(#lgGrad)" style="opacity:0.06"/>
+        <!-- Gyri L -->
+        <path d="M78,88 Q100,73 122,86 Q142,98 158,88"  fill="none" stroke="rgba(0,255,200,0.20)" stroke-width="1.1"/>
+        <path d="M62,113 Q88,98  114,110 Q138,121 157,110" fill="none" stroke="rgba(0,255,200,0.16)" stroke-width="0.9"/>
+        <path d="M58,138 Q84,126 110,136 Q140,147 160,136" fill="none" stroke="rgba(0,255,200,0.18)" stroke-width="1.1"/>
+        <path d="M64,162 Q92,152 118,162 Q146,171 163,161" fill="none" stroke="rgba(0,255,200,0.14)" stroke-width="0.9"/>
+        <path d="M80,185 Q106,177 130,184 Q153,191 163,183" fill="none" stroke="rgba(0,255,200,0.12)" stroke-width="0.8"/>
+        <!-- Neural activity dots L -->
+        <circle class="nd-l" id="ndl1" cx="108" cy="98"  r="2.5" fill="#00ffc8" opacity="0.5"/>
+        <circle class="nd-l" id="ndl2" cx="140" cy="113" r="2.0" fill="#00ffc8" opacity="0.4"/>
+        <circle class="nd-l" id="ndl3" cx="94"  cy="138" r="2.5" fill="#00ffc8" opacity="0.55"/>
+        <circle class="nd-l" id="ndl4" cx="130" cy="153" r="2.0" fill="#00ffc8" opacity="0.38"/>
+        <circle class="nd-l" id="ndl5" cx="158" cy="122" r="1.5" fill="#00ffc8" opacity="0.45"/>
+        <circle class="nd-l" id="ndl6" cx="106" cy="168" r="2.0" fill="#00ffc8" opacity="0.42"/>
+      </g>
+
+      <!-- Right hemisphere fill -->
+      <g clip-path="url(#rcClip)">
+        <ellipse id="rh-fill" cx="220" cy="128" rx="180" ry="102" fill="url(#rgGrad)" style="opacity:0.06"/>
+        <!-- Gyri R -->
+        <path d="M362,88 Q340,73 318,86 Q298,98 282,88"  fill="none" stroke="rgba(139,92,246,0.20)" stroke-width="1.1"/>
+        <path d="M378,113 Q352,98  326,110 Q302,121 283,110" fill="none" stroke="rgba(139,92,246,0.16)" stroke-width="0.9"/>
+        <path d="M382,138 Q356,126 330,136 Q300,147 280,136" fill="none" stroke="rgba(139,92,246,0.18)" stroke-width="1.1"/>
+        <path d="M376,162 Q348,152 322,162 Q294,171 277,161" fill="none" stroke="rgba(139,92,246,0.14)" stroke-width="0.9"/>
+        <path d="M360,185 Q334,177 310,184 Q287,191 277,183" fill="none" stroke="rgba(139,92,246,0.12)" stroke-width="0.8"/>
+        <!-- Neural activity dots R -->
+        <circle class="nd-r" id="ndr1" cx="332" cy="98"  r="2.5" fill="#8b5cf6" opacity="0.5"/>
+        <circle class="nd-r" id="ndr2" cx="300" cy="113" r="2.0" fill="#8b5cf6" opacity="0.4"/>
+        <circle class="nd-r" id="ndr3" cx="346" cy="138" r="2.5" fill="#8b5cf6" opacity="0.55"/>
+        <circle class="nd-r" id="ndr4" cx="310" cy="153" r="2.0" fill="#8b5cf6" opacity="0.38"/>
+        <circle class="nd-r" id="ndr5" cx="282" cy="122" r="1.5" fill="#8b5cf6" opacity="0.45"/>
+        <circle class="nd-r" id="ndr6" cx="334" cy="168" r="2.0" fill="#8b5cf6" opacity="0.42"/>
+      </g>
+
+      <!-- Corpus callosum divider -->
+      <path d="M220,32 Q222,78 220,128 Q218,178 220,224"
+        fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="1.5"/>
+
+      <!-- Frequency labels inside hemispheres -->
+      <text id="lbl-left-hz" x="116" y="124"
+        text-anchor="middle" font-family="Orbitron,monospace"
+        font-size="13" font-weight="600" fill="#00ffc8">220 Hz</text>
+      <text x="116" y="140"
+        text-anchor="middle" font-family="JetBrains Mono,monospace"
+        font-size="9" fill="rgba(0,255,200,0.45)">LEFT EAR</text>
+
+      <text id="lbl-right-hz" x="324" y="124"
+        text-anchor="middle" font-family="Orbitron,monospace"
+        font-size="13" font-weight="600" fill="#8b5cf6">230 Hz</text>
+      <text x="324" y="140"
+        text-anchor="middle" font-family="JetBrains Mono,monospace"
+        font-size="9" fill="rgba(139,92,246,0.45)">RIGHT EAR</text>
+
+      <!-- Beat label below brain -->
+      <text id="lbl-beat" x="220" y="244"
+        text-anchor="middle" font-family="Orbitron,monospace"
+        font-size="11" fill="rgba(255,255,255,0.45)">BEAT: 10.0 Hz</text>
+      <text id="lbl-band-svg" x="220" y="260"
+        text-anchor="middle" font-family="Rajdhani,sans-serif"
+        font-size="11" font-weight="600" letter-spacing="2"
+        fill="rgba(139,92,246,0.75)">ALPHA</text>
+    </svg>
+    </div>
+
+    <!-- Frequency readout -->
+    <div class="freq-display">
+      <div class="freq-block">
+        <div class="freq-num left" id="disp-left">220.0</div>
+        <div class="freq-lbl">LEFT · Hz</div>
+      </div>
+      <div class="freq-block beat-block">
+        <div class="freq-num beat" id="disp-beat">10.0</div>
+        <div class="freq-lbl">BEAT · Hz</div>
+      </div>
+      <div class="freq-block">
+        <div class="freq-num right" id="disp-right">230.0</div>
+        <div class="freq-lbl">RIGHT · Hz</div>
+      </div>
+    </div>
+
+    <!-- Waveform -->
+    <div class="wave-wrap">
+      <canvas id="wave-canvas"></canvas>
+    </div>
+
+    <!-- Brainwave band bar -->
+    <div>
+      <div class="band-bar">
+        <div class="band-seg" id="seg-delta" style="background:#4338ca"></div>
+        <div class="band-seg active" id="seg-theta" style="background:#8b5cf6"></div>
+        <div class="band-seg" id="seg-alpha" style="background:#06b6d4"></div>
+        <div class="band-seg" id="seg-beta"  style="background:#10b981"></div>
+        <div class="band-seg" id="seg-gamma" style="background:#f43f5e"></div>
+      </div>
+      <div class="band-info">
+        <div>
+          <span class="band-name" id="band-name" style="color:#8b5cf6">THETA</span>
+          <span class="band-meta">WAVE BAND</span>
+        </div>
+        <span class="band-range" id="band-range">4–8 Hz</span>
+      </div>
+    </div>
+
+    <!-- Play + Carrier control -->
+    <div class="controls-row">
+      <button class="play-btn" id="play-btn" onclick="togglePlay()">▶ START</button>
+      <div class="slider-group">
+        <label>CARRIER FREQ <span id="carrier-val">220</span> Hz</label>
+        <input type="range" id="carrier-sl" min="100" max="400" value="220"
+          oninput="updateCarrier(this.value)">
+      </div>
+    </div>
+
+    <!-- Layer toggles -->
+    <div>
+      <div class="section-title" style="margin-bottom:8px">Audio Layers</div>
+      <div class="layers-grid">
+        <div class="layer-toggle on" id="lt-binaural" onclick="toggleLayer('binaural')">
+          <span class="lt-label">BINAURAL</span>
+          <div class="lt-dot"></div>
+        </div>
+        <div class="layer-toggle" id="lt-iso" onclick="toggleLayer('iso')">
+          <span class="lt-label">ISOCHRONIC</span>
+          <div class="lt-dot"></div>
+        </div>
+        <div class="layer-toggle" id="lt-harmonic" onclick="toggleLayer('harmonic')">
+          <span class="lt-label">HARMONICS</span>
+          <div class="lt-dot"></div>
+        </div>
+        <div class="layer-toggle" id="lt-ambient" onclick="toggleLayer('ambient')">
+          <span class="lt-label">AMBIENT PAD</span>
+          <div class="lt-dot"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Session timeline (only visible for descent presets) -->
+    <div class="timeline" id="timeline">
+      <div class="section-title" style="margin-bottom:4px">Session Timeline</div>
+      <div class="tl-track">
+        <div class="tl-segments">
+          <div class="tl-seg" style="background:#10b981;width:8%"></div>
+          <div class="tl-seg" style="background:#06b6d4;width:14%"></div>
+          <div class="tl-seg" style="background:#8b5cf6;width:26%"></div>
+          <div class="tl-seg" style="background:#8b5cf6;width:18%"></div>
+          <div class="tl-seg" style="background:#4338ca;width:20%"></div>
+          <div class="tl-seg" style="background:#4338ca;width:14%"></div>
+        </div>
+        <div class="tl-needle" id="tl-needle" style="left:25%"></div>
+      </div>
+      <div class="tl-labels">
+        <span>Beta 16Hz</span>
+        <span>Alpha 8Hz</span>
+        <span>Theta 4Hz</span>
+        <span>Delta 2Hz</span>
+      </div>
+    </div>
+
+  </div><!-- /.left-panel -->
+
+  <!-- ════════════════════ RIGHT PANEL ════════════════════ -->
+  <div class="right-panel">
+
+    <div class="section-title">Beat Frequency</div>
+
+    <!-- Rotary knob -->
+    <div class="knob-wrap">
+      <canvas id="beat-knob" width="164" height="164"></canvas>
+    </div>
+
+    <!-- Volume -->
+    <div class="vol-group">
+      <label>VOLUME <span id="vol-val">65</span>%</label>
+      <input type="range" id="vol-sl" min="0" max="100" value="65"
+        oninput="updateVol(this.value)">
+    </div>
+
+    <div class="section-title" style="margin-top:4px">Presets</div>
+
+    <!-- Preset cards -->
+    <div class="presets">
+
+      <div class="pcard active"
+        style="--pc-tint:rgba(67,56,202,0.18);--pc-solid:#4338ca;--pc-glow:rgba(67,56,202,0.25)"
+        onclick="loadPreset(this,1.5,180,'delta','#4338ca',false)">
+        <div class="pc-top">
+          <div class="pc-name">Deep Sleep</div>
+          <div class="pc-dot" style="background:#4338ca;box-shadow:0 0 6px #4338ca"></div>
+        </div>
+        <div class="pc-desc">Delta descent, deep rest</div>
+        <div class="pc-hz" style="color:#4338ca">1.5 Hz</div>
+        <div class="pc-meta">
+          <span class="pc-tag">60 MIN</span>
+          <span class="pc-tag">🎧 REQ</span>
+        </div>
+      </div>
+
+      <div class="pcard"
+        style="--pc-tint:rgba(16,185,129,0.14);--pc-solid:#10b981;--pc-glow:rgba(16,185,129,0.22)"
+        onclick="loadPreset(this,14,220,'beta','#10b981',false)">
+        <div class="pc-top">
+          <div class="pc-name">Coding Flow</div>
+          <div class="pc-dot" style="background:#10b981"></div>
+        </div>
+        <div class="pc-desc">Beta focus, deep work</div>
+        <div class="pc-hz" style="color:#10b981">14 Hz</div>
+        <div class="pc-meta">
+          <span class="pc-tag">45 MIN</span>
+          <span class="pc-tag">🎧 REQ</span>
+        </div>
+      </div>
+
+      <div class="pcard"
+        style="--pc-tint:rgba(139,92,246,0.14);--pc-solid:#8b5cf6;--pc-glow:rgba(139,92,246,0.22)"
+        onclick="loadPreset(this,7,200,'theta','#8b5cf6',false)">
+        <div class="pc-top">
+          <div class="pc-name">Zen Meditation</div>
+          <div class="pc-dot" style="background:#8b5cf6"></div>
+        </div>
+        <div class="pc-desc">Theta calm, presence</div>
+        <div class="pc-hz" style="color:#8b5cf6">7 Hz</div>
+        <div class="pc-meta">
+          <span class="pc-tag">30 MIN</span>
+          <span class="pc-tag">🎧 REQ</span>
+        </div>
+      </div>
+
+      <div class="pcard"
+        style="--pc-tint:rgba(0,255,200,0.10);--pc-solid:#00ffc8;--pc-glow:rgba(0,255,200,0.18)"
+        onclick="loadPreset(this,8,180,'theta','#8b5cf6',false)">
+        <div class="pc-top">
+          <div class="pc-name">Creative Flow</div>
+          <div class="pc-dot" style="background:#00ffc8"></div>
+        </div>
+        <div class="pc-desc">Theta creativity burst</div>
+        <div class="pc-hz" style="color:#00ffc8">8 Hz</div>
+        <div class="pc-meta">
+          <span class="pc-tag">30 MIN</span>
+          <span class="pc-tag">🎧 REQ</span>
+        </div>
+      </div>
+
+      <div class="pcard"
+        style="--pc-tint:rgba(244,63,94,0.10);--pc-solid:#f43f5e;--pc-glow:rgba(244,63,94,0.20)"
+        onclick="loadPreset(this,12,200,'alpha','#06b6d4',false)">
+        <div class="pc-top">
+          <div class="pc-name">ADHD Focus</div>
+          <div class="pc-dot" style="background:#f43f5e"></div>
+        </div>
+        <div class="pc-desc">Alpha-beta bridge</div>
+        <div class="pc-hz" style="color:#f43f5e">12 Hz</div>
+        <div class="pc-meta">
+          <span class="pc-tag">40 MIN</span>
+          <span class="pc-tag">🎧 REQ</span>
+        </div>
+      </div>
+
+      <div class="pcard"
+        style="--pc-tint:rgba(245,158,11,0.10);--pc-solid:#f59e0b;--pc-glow:rgba(245,158,11,0.20)"
+        onclick="loadPreset(this,16,240,'beta','#10b981',true)">
+        <div class="pc-top">
+          <div class="pc-name">Sleep Descent</div>
+          <div class="pc-dot" style="background:#f59e0b"></div>
+        </div>
+        <div class="pc-desc">Beta→Delta journey</div>
+        <div class="pc-hz" style="color:#f59e0b">16→1.5 Hz</div>
+        <div class="pc-meta">
+          <span class="pc-tag">90 MIN</span>
+          <span class="pc-tag">⬇ AUTO</span>
+        </div>
+      </div>
+
+    </div><!-- /.presets -->
+
+    <div class="warning" id="hphone-warn">
+      🎧 Headphones required for binaural separation. Each ear must receive a different frequency — without headphones, the beat effect is lost.
+    </div>
+
+    <div class="disclaimer">
+      Use at safe listening volumes. Not recommended for epilepsy or seizure disorders. Not a medical device.<br>
+      © 2026 Inventions4All — github:TWeb79
+    </div>
+
+  </div><!-- /.right-panel -->
+
+</main>
+</div><!-- /#shell -->
+
+<script>
+/* ═══════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════ */
+let audioCtx = null;
+let leftOsc = null, rightOsc = null;
+let leftGain = null, rightGain = null;
+let leftPan = null, rightPan = null;
+let isPlaying = false;
+let beatFreq = 10.0;
+let carrierFreq = 220.0;
+let volPct = 0.65;
+
+// Animation state
+let wavePhase = 0;
+let beatPhase = 0;
+
+/* ═══════════════════════════════════════════════
+   BAND UTILS
+═══════════════════════════════════════════════ */
+const BANDS = {
+  delta: { name: 'DELTA', color: '#4338ca', range: '0.5–4 Hz',  id: 'delta' },
+  theta: { name: 'THETA', color: '#8b5cf6', range: '4–8 Hz',    id: 'theta' },
+  alpha: { name: 'ALPHA', color: '#06b6d4', range: '8–13 Hz',   id: 'alpha' },
+  beta:  { name: 'BETA',  color: '#10b981', range: '13–30 Hz',  id: 'beta'  },
+  gamma: { name: 'GAMMA', color: '#f43f5e', range: '30–80 Hz',  id: 'gamma' }
+};
+
+function getBand(hz) {
+  if (hz < 4)  return BANDS.delta;
+  if (hz < 8)  return BANDS.theta;
+  if (hz < 13) return BANDS.alpha;
+  if (hz < 30) return BANDS.beta;
+  return BANDS.gamma;
+}
+
+/* ═══════════════════════════════════════════════
+   UI UPDATE
+═══════════════════════════════════════════════ */
+function updateUI() {
+  const b = getBand(beatFreq);
+  const leftHz  = carrierFreq;
+  const rightHz = carrierFreq + beatFreq;
+
+  // Frequency readout
+  document.getElementById('disp-left').textContent  = leftHz.toFixed(1);
+  document.getElementById('disp-right').textContent = rightHz.toFixed(1);
+  document.getElementById('disp-beat').textContent  = beatFreq.toFixed(1);
+
+  // Brain SVG labels
+  document.getElementById('lbl-left-hz').textContent  = leftHz.toFixed(0) + ' Hz';
+  document.getElementById('lbl-right-hz').textContent = rightHz.toFixed(0) + ' Hz';
+  document.getElementById('lbl-beat').textContent     = 'BEAT: ' + beatFreq.toFixed(1) + ' Hz';
+  document.getElementById('lbl-band-svg').textContent = b.name;
+  document.getElementById('lbl-band-svg').setAttribute('fill', b.color + 'bb');
+
+  // Band bar
+  Object.values(BANDS).forEach(band => {
+    const el = document.getElementById('seg-' + band.id);
+    if (el) el.classList.toggle('active', band.id === b.id);
+  });
+
+  // Band labels
+  document.getElementById('band-name').textContent  = b.name;
+  document.getElementById('band-name').style.color  = b.color;
+  document.getElementById('band-range').textContent = b.range;
+
+  // CSS var for beat animation timing
+  document.documentElement.style.setProperty('--beat-ms', (1000 / beatFreq) + 'ms');
+}
+
+/* ═══════════════════════════════════════════════
+   CARRIER / VOLUME
+═══════════════════════════════════════════════ */
+function updateCarrier(v) {
+  carrierFreq = parseFloat(v);
+  document.getElementById('carrier-val').textContent = Math.round(carrierFreq);
+  updateUI();
+  drawKnob();
+  if (leftOsc && rightOsc && audioCtx) {
+    leftOsc.frequency.setTargetAtTime(carrierFreq, audioCtx.currentTime, 0.1);
+    rightOsc.frequency.setTargetAtTime(carrierFreq + beatFreq, audioCtx.currentTime, 0.1);
+  }
+}
+
+function updateVol(v) {
+  volPct = v / 100;
+  document.getElementById('vol-val').textContent = Math.round(v);
+  if (leftGain && rightGain && isPlaying && audioCtx) {
+    const g = volPct * 0.18;
+    leftGain.gain.setTargetAtTime(g, audioCtx.currentTime, 0.05);
+    rightGain.gain.setTargetAtTime(g, audioCtx.currentTime, 0.05);
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   ROTARY KNOB
+═══════════════════════════════════════════════ */
+const knobEl  = document.getElementById('beat-knob');
+const kctx    = knobEl.getContext('2d');
+const KW = 164, KH = 164, KCX = 82, KCY = 88, KR = 62;
+const K_MIN_A = Math.PI * 0.75;
+const K_MAX_A = Math.PI * 2.25;
+
+let knobDragging = false;
+let knobStartY   = 0;
+let knobStartVal = 10;
+
+function drawKnob() {
+  kctx.clearRect(0, 0, KW, KH);
+  const b = getBand(beatFreq);
+  const angle = K_MIN_A + ((beatFreq - 0.5) / (40 - 0.5)) * (K_MAX_A - K_MIN_A);
+
+  // Track background
+  kctx.beginPath();
+  kctx.arc(KCX, KCY, KR, K_MIN_A, K_MAX_A);
+  kctx.strokeStyle = 'rgba(255,255,255,0.07)';
+  kctx.lineWidth = 7;
+  kctx.stroke();
+
+  // Active arc
+  kctx.beginPath();
+  kctx.arc(KCX, KCY, KR, K_MIN_A, angle);
+  kctx.strokeStyle = b.color;
+  kctx.lineWidth = 7;
+  kctx.shadowBlur = 14;
+  kctx.shadowColor = b.color;
+  kctx.stroke();
+  kctx.shadowBlur = 0;
+
+  // Band boundary ticks
+  const TICKS = [
+    { hz: 4,  color: '#4338ca' },
+    { hz: 8,  color: '#06b6d4' },
+    { hz: 13, color: '#10b981' },
+    { hz: 30, color: '#f43f5e' }
+  ];
+  TICKS.forEach(({ hz, color }) => {
+    const a = K_MIN_A + ((hz - 0.5) / 39.5) * (K_MAX_A - K_MIN_A);
+    kctx.beginPath();
+    kctx.moveTo(KCX + Math.cos(a) * (KR - 13), KCY + Math.sin(a) * (KR - 13));
+    kctx.lineTo(KCX + Math.cos(a) * (KR +  4), KCY + Math.sin(a) * (KR +  4));
+    kctx.strokeStyle = color;
+    kctx.lineWidth = 1.5;
+    kctx.shadowBlur = 0;
+    kctx.stroke();
+  });
+
+  // Needle
+  kctx.beginPath();
+  kctx.moveTo(KCX, KCY);
+  kctx.lineTo(
+    KCX + Math.cos(angle) * (KR - 10),
+    KCY + Math.sin(angle) * (KR - 10)
+  );
+  kctx.strokeStyle = b.color;
+  kctx.lineWidth = 2.5;
+  kctx.shadowBlur = 10;
+  kctx.shadowColor = b.color;
+  kctx.stroke();
+  kctx.shadowBlur = 0;
+
+  // Center circle
+  kctx.beginPath();
+  kctx.arc(KCX, KCY, 9, 0, Math.PI * 2);
+  kctx.fillStyle = '#0c0c14';
+  kctx.fill();
+  kctx.strokeStyle = b.color;
+  kctx.lineWidth = 1.5;
+  kctx.stroke();
+
+  // Hz value
+  kctx.fillStyle = '#e2e8f0';
+  kctx.font = '600 21px Orbitron, monospace';
+  kctx.textAlign = 'center';
+  kctx.textBaseline = 'middle';
+  kctx.fillText(beatFreq.toFixed(1), KCX, KCY - 3);
+
+  // Band name
+  kctx.fillStyle = b.color;
+  kctx.font = '400 9px JetBrains Mono, monospace';
+  kctx.fillText(b.name, KCX, KCY + 14);
+
+  // "Hz" label
+  kctx.fillStyle = 'rgba(255,255,255,0.28)';
+  kctx.font = '400 9px JetBrains Mono, monospace';
+  kctx.fillText('Hz', KCX, KCY + 26);
+}
+
+knobEl.addEventListener('mousedown', e => {
+  knobDragging = true;
+  knobStartY   = e.clientY;
+  knobStartVal = beatFreq;
+  e.preventDefault();
+});
+window.addEventListener('mousemove', e => {
+  if (!knobDragging) return;
+  const dy = knobStartY - e.clientY;
+  beatFreq = Math.max(0.5, Math.min(40, knobStartVal + dy * 0.13));
+  updateUI();
+  drawKnob();
+  if (leftOsc && rightOsc && audioCtx) {
+    rightOsc.frequency.setTargetAtTime(carrierFreq + beatFreq, audioCtx.currentTime, 0.08);
+  }
+});
+window.addEventListener('mouseup', () => { knobDragging = false; });
+
+knobEl.addEventListener('wheel', e => {
+  e.preventDefault();
+  beatFreq = Math.max(0.5, Math.min(40, beatFreq - e.deltaY * 0.02));
+  updateUI();
+  drawKnob();
+  if (leftOsc && rightOsc && audioCtx) {
+    rightOsc.frequency.setTargetAtTime(carrierFreq + beatFreq, audioCtx.currentTime, 0.08);
+  }
+}, { passive: false });
+
+/* ═══════════════════════════════════════════════
+   WAVEFORM CANVAS
+═══════════════════════════════════════════════ */
+const waveEl  = document.getElementById('wave-canvas');
+const wctx    = waveEl.getContext('2d');
+
+function resizeWave() {
+  waveEl.width  = waveEl.offsetWidth  || 600;
+  waveEl.height = waveEl.offsetHeight || 100;
+}
+
+function drawWave() {
+  resizeWave();
+  const W = waveEl.width, H = waveEl.height;
+  const cy1 = H * 0.27, cy2 = H * 0.73, amp = H * 0.19;
+
+  wctx.clearRect(0, 0, W, H);
+
+  // Center grid lines
+  wctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  wctx.lineWidth = 0.5;
+  [[cy1],[cy2],[H/2]].forEach(([y]) => {
+    wctx.beginPath(); wctx.moveTo(0, y); wctx.lineTo(W, y); wctx.stroke();
+  });
+
+  // Left channel (cyan) — upper half
+  wctx.beginPath();
+  for (let x = 0; x <= W; x++) {
+    const t = (x / W) * 4;
+    const y = cy1 - Math.sin(t * Math.PI * (carrierFreq / 100) + wavePhase) * amp;
+    x === 0 ? wctx.moveTo(x, y) : wctx.lineTo(x, y);
+  }
+  wctx.strokeStyle = '#00ffc8';
+  wctx.lineWidth = 1.5;
+  wctx.shadowBlur = 7;
+  wctx.shadowColor = '#00ffc8';
+  wctx.stroke();
+  wctx.shadowBlur = 0;
+
+  // Right channel (violet) — lower half, phase offset by beat
+  const phaseOff = (beatPhase % (Math.PI * 2));
+  wctx.beginPath();
+  for (let x = 0; x <= W; x++) {
+    const t = (x / W) * 4;
+    const y = cy2 - Math.sin(t * Math.PI * ((carrierFreq + beatFreq) / 100) + wavePhase + phaseOff) * amp;
+    x === 0 ? wctx.moveTo(x, y) : wctx.lineTo(x, y);
+  }
+  wctx.strokeStyle = '#8b5cf6';
+  wctx.lineWidth = 1.5;
+  wctx.shadowBlur = 7;
+  wctx.shadowColor = '#8b5cf6';
+  wctx.stroke();
+  wctx.shadowBlur = 0;
+
+  // Beat cycle sweep line
+  const sweepX = ((beatPhase % (Math.PI * 2)) / (Math.PI * 2)) * W;
+  wctx.beginPath();
+  wctx.moveTo(sweepX, 0); wctx.lineTo(sweepX, H);
+  wctx.strokeStyle = 'rgba(255,255,255,0.07)';
+  wctx.lineWidth = 1;
+  wctx.stroke();
+
+  // Advance phase only while playing
+  if (isPlaying) {
+    wavePhase  += 0.038;
+    beatPhase  += 0.018 * beatFreq * 0.12;
+  }
+
+  requestAnimationFrame(drawWave);
+}
+
+/* ═══════════════════════════════════════════════
+   BRAIN ANIMATION
+═══════════════════════════════════════════════ */
+function animBrain() {
+  const t = performance.now() / 1000;
+  const period = 1.0 / beatFreq;
+
+  // Left pulse (0°), right pulse (180° offset)
+  const lPulse = (Math.sin(2 * Math.PI * t / period) + 1) * 0.5;
+  const rPulse = (Math.sin(2 * Math.PI * t / period + Math.PI) + 1) * 0.5;
+
+  const lhEl = document.getElementById('lh-fill');
+  const rhEl = document.getElementById('rh-fill');
+
+  if (isPlaying) {
+    lhEl.style.opacity = (0.04 + lPulse * 0.22).toFixed(3);
+    rhEl.style.opacity = (0.04 + rPulse * 0.22).toFixed(3);
+  } else {
+    lhEl.style.opacity = '0.05';
+    rhEl.style.opacity = '0.05';
+  }
+
+  // Neural dots — staggered per hemisphere
+  for (let i = 1; i <= 6; i++) {
+    const dL = document.getElementById('ndl' + i);
+    const dR = document.getElementById('ndr' + i);
+    const delay = i * 0.22;
+    if (isPlaying) {
+      const oL = ((Math.sin(2 * Math.PI * t / period + delay) + 1) * 0.5) * 0.75 + 0.12;
+      const oR = ((Math.sin(2 * Math.PI * t / period + Math.PI + delay) + 1) * 0.5) * 0.75 + 0.12;
+      if (dL) dL.style.opacity = oL.toFixed(3);
+      if (dR) dR.style.opacity = oR.toFixed(3);
+    } else {
+      if (dL) dL.style.opacity = '0.22';
+      if (dR) dR.style.opacity = '0.22';
+    }
+  }
+
+  // Slowly rotate the orbit ring
+  const ring = document.getElementById('beat-ring');
+  if (ring) ring.setAttribute('transform', `rotate(${(t * 7) % 360} 220 128)`);
+
+  requestAnimationFrame(animBrain);
+}
+
+/* ═══════════════════════════════════════════════
+   BACKGROUND PARTICLES
+═══════════════════════════════════════════════ */
+const bgEl  = document.getElementById('bg');
+const bgctx = bgEl.getContext('2d');
+
+function resizeBg() {
+  bgEl.width  = window.innerWidth;
+  bgEl.height = window.innerHeight;
+}
+resizeBg();
+window.addEventListener('resize', resizeBg);
+
+const NUM_PARTICLES = window.innerWidth < 768 ? 50 : 100;
+const particles = Array.from({ length: NUM_PARTICLES }, () => ({
+  x:     Math.random() * window.innerWidth,
+  y:     Math.random() * window.innerHeight,
+  vx:    (Math.random() - 0.5) * 0.30,
+  vy:    (Math.random() - 0.5) * 0.30,
+  r:     Math.random() * 1.4 + 0.4,
+  phase: Math.random() * Math.PI * 2
+}));
+
+function drawBg() {
+  bgctx.clearRect(0, 0, bgEl.width, bgEl.height);
+  const t = performance.now() / 1000;
+  const speed = isPlaying ? 1 + beatFreq * 0.025 : 0.45;
+
+  particles.forEach(p => {
+    p.x += p.vx * speed;
+    p.y += p.vy * speed;
+    if (p.x < 0) p.x = bgEl.width;
+    if (p.x > bgEl.width)  p.x = 0;
+    if (p.y < 0) p.y = bgEl.height;
+    if (p.y > bgEl.height) p.y = 0;
+
+    const hue = p.x / bgEl.width;
+    const baseA = (Math.sin(t * 0.45 + p.phase) + 1) * 0.07 + 0.05;
+    const col = hue < 0.5
+      ? `rgba(0,255,200,${baseA.toFixed(3)})`
+      : `rgba(139,92,246,${baseA.toFixed(3)})`;
+
+    bgctx.beginPath();
+    bgctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    bgctx.fillStyle = col;
+    bgctx.fill();
+  });
+
+  requestAnimationFrame(drawBg);
+}
+
+/* ═══════════════════════════════════════════════
+   AUDIO ENGINE
+═══════════════════════════════════════════════ */
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+  leftOsc  = audioCtx.createOscillator();
+  rightOsc = audioCtx.createOscillator();
+  leftGain  = audioCtx.createGain();
+  rightGain = audioCtx.createGain();
+  leftPan  = audioCtx.createStereoPanner();
+  rightPan = audioCtx.createStereoPanner();
+
+  // Hard pan each channel — CRITICAL for binaural effect
+  leftPan.pan.setValueAtTime(-1, audioCtx.currentTime);
+  rightPan.pan.setValueAtTime( 1, audioCtx.currentTime);
+
+  leftOsc.type  = 'sine';
+  rightOsc.type = 'sine';
+
+  leftOsc.frequency.setValueAtTime(carrierFreq,             audioCtx.currentTime);
+  rightOsc.frequency.setValueAtTime(carrierFreq + beatFreq, audioCtx.currentTime);
+
+  // Start silent
+  leftGain.gain.setValueAtTime(0, audioCtx.currentTime);
+  rightGain.gain.setValueAtTime(0, audioCtx.currentTime);
+
+  leftOsc.connect(leftGain);
+  leftGain.connect(leftPan);
+  leftPan.connect(audioCtx.destination);
+
+  rightOsc.connect(rightGain);
+  rightGain.connect(rightPan);
+  rightPan.connect(audioCtx.destination);
+
+  leftOsc.start();
+  rightOsc.start();
+}
+
+function togglePlay() {
+  initAudio();
+
+  const btn    = document.getElementById('play-btn');
+  const dot    = document.getElementById('status-dot');
+  const lbl    = document.getElementById('status-label');
+
+  if (isPlaying) {
+    // Fade out
+    leftGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.6);
+    rightGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.6);
+    btn.textContent = '▶ START';
+    btn.classList.remove('playing');
+    dot.classList.add('idle');
+    lbl.textContent = 'READY';
+  } else {
+    // 3-second safety ramp-up
+    const targetGain = volPct * 0.18;
+    leftGain.gain.setValueAtTime(0, audioCtx.currentTime);
+    leftGain.gain.linearRampToValueAtTime(targetGain, audioCtx.currentTime + 3.0);
+    rightGain.gain.setValueAtTime(0, audioCtx.currentTime);
+    rightGain.gain.linearRampToValueAtTime(targetGain, audioCtx.currentTime + 3.0);
+    btn.textContent = '■ STOP';
+    btn.classList.add('playing');
+    dot.classList.remove('idle');
+    lbl.textContent = 'PLAYING';
+  }
+
+  isPlaying = !isPlaying;
+}
+
+/* ═══════════════════════════════════════════════
+   PRESET LOADER
+═══════════════════════════════════════════════ */
+function loadPreset(el, beat, carrier, bandId, color, hasTimeline) {
+  // Activate card
+  document.querySelectorAll('.pcard').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+
+  beatFreq    = beat;
+  carrierFreq = carrier;
+
+  // Update slider sync
+  document.getElementById('carrier-sl').value = carrier;
+  document.getElementById('carrier-val').textContent = Math.round(carrier);
+
+  updateUI();
+  drawKnob();
+
+  // Smooth audio transition
+  if (audioCtx && leftOsc && rightOsc) {
+    leftOsc.frequency.setTargetAtTime(carrier,        audioCtx.currentTime, 0.30);
+    rightOsc.frequency.setTargetAtTime(carrier + beat, audioCtx.currentTime, 0.30);
+  }
+
+  // Timeline visibility
+  document.getElementById('timeline').classList.toggle('visible', hasTimeline);
+
+  // Auto-start if not playing
+  if (!isPlaying) togglePlay();
+}
+
+/* ═══════════════════════════════════════════════
+   LAYER TOGGLES
+═══════════════════════════════════════════════ */
+function toggleLayer(id) {
+  const el = document.getElementById('lt-' + id);
+  el.classList.toggle('on');
+  refreshHeadphoneWarning();
+}
+
+function refreshHeadphoneWarning() {
+  const binOn = document.getElementById('lt-binaural').classList.contains('on');
+  const isoOn = document.getElementById('lt-iso').classList.contains('on');
+  const warn  = document.getElementById('hphone-warn');
+  // Show warning only when binaural is active (isochronic doesn't need headphones)
+  warn.style.display = binOn && !isoOn ? 'block' : (binOn ? 'block' : 'none');
+}
+
+/* ═══════════════════════════════════════════════
+   BOOT
+═══════════════════════════════════════════════ */
+updateUI();
+drawKnob();
+drawBg();
+drawWave();
+animBrain();
+</script>
+</body>
+</html>

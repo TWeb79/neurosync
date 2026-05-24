@@ -5,6 +5,7 @@ Author: Inventions4All - github:TWeb79
 
 import numpy as np
 from scipy.fft import fft
+from scipy.signal import get_window
 
 
 class BrainwaveSphere:
@@ -51,12 +52,14 @@ class FrequencyRings:
             right_channel: Right audio channel
         """
         combined = np.concatenate([left_channel[-1024:], right_channel[-1024:]])
-        spectrum = np.abs(fft(combined))[: self.num_rings * 10].reshape(-1, 10).mean(axis=1)
+        window = get_window('hann', len(combined))
+        windowed_signal = combined * window
+        spectrum = np.abs(fft(windowed_signal))[: self.num_rings * 20].reshape(-1, 20).mean(axis=1)
         self.ring_values = spectrum / spectrum.max() if spectrum.max() > 0 else spectrum
 
 
 class AmbientParticles:
-    """GPU-accelerated particle system."""
+    """Particle system with fixed velocity integration."""
 
     def __init__(self, num_particles: int = 500):
         """Initialize particle system.
@@ -76,5 +79,5 @@ class AmbientParticles:
             dt: Delta time in seconds
         """
         speed = calmness * 0.001
-        self.positions += self.velocities * speed / dt
+        self.positions += self.velocities * speed * dt
         self.positions = np.clip(self.positions, -1, 1)
