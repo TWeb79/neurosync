@@ -25,16 +25,23 @@ def read_root():
             h1 { color: #00ffff; text-align: center; font-size: 3em; margin-bottom: 10px; text-shadow: 0 0 20px #00ffff; }
             .subtitle { text-align: center; color: #888; margin-bottom: 40px; }
             
-            .visualizer { text-align: center; margin: 40px 0; position: relative; height: 200px; }
-            .brainwave-sphere { width: 150px; height: 150px; margin: 0 auto; border-radius: 50%; background: radial-gradient(circle, #00ffff 0%, #0a0a2a 70%); border: 2px solid #00ffff; animation: pulse 2s infinite; position: relative; }
-            @keyframes pulse { 0%, 100% { transform: scale(1); box-shadow: 0 0 30px #00ffff; } 50% { transform: scale(1.1); box-shadow: 0 0 50px #00ffff, 0 0 80px #0088ff; } }
-            .frequency-display { margin-top: 20px; color: #00ff00; font-size: 1.2em; }
+            .brain-visualizer { display: flex; justify-content: center; align-items: center; margin: 40px 0; gap: 20px; }
+            .brain-side { text-align: center; flex: 1; }
+            .brain-hemisphere { width: 120px; height: 160px; margin: 0 auto; background: linear-gradient(135deg, #2a2a4a 0%, #0a0a2a 100%); border-radius: 60px 60px 50px 50px; border: 2px solid #00ffff; position: relative; overflow: hidden; }
+            .brain-hemisphere::before { content: ''; position: absolute; top: 20px; left: 50%; transform: translateX(-50%); width: 40px; height: 40px; background: #00ff00; border-radius: 50%; animation: pulse 1s infinite; }
+            @keyframes pulse { 0%, 100% { opacity: 0.5; transform: translateX(-50%) scale(1); } 50% { opacity: 1; transform: translateX(-50%) scale(1.2); } }
+            .ear-label { color: #ff0066; font-weight: bold; margin-top: 15px; font-size: 1.4em; }
+            .ear-freq { color: #00ffff; font-size: 1.2em; margin-top: 5px; }
+            
+            .brain-middle { flex: 0 0 80px; text-align: center; }
+            .hemisync-display { width: 80px; height: 80px; margin: 0 auto; background: radial-gradient(circle, #ff0066 0%, #0a0a2a 70%); border-radius: 50%; border: 3px solid #ff0066; display: flex; align-items: center; justify-content: center; font-size: 1.5em; font-weight: bold; color: #ff0066; animation: beat-pulse 0.5s infinite; }
+            @keyframes beat-pulse { 0%, 100% { transform: scale(1); box-shadow: 0 0 20px #ff0066; } 50% { transform: scale(1.1); box-shadow: 0 0 40px #ff0066, 0 0 60px #ff0066; } }
+            .hemisync-label { margin-top: 10px; color: #ff0066; font-weight: bold; }
             
             .presets { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 30px 0; }
             .preset-card { background: #1a1a2a; border: 1px solid #00ffff; border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s; }
             .preset-card:hover { background: #00ffff; color: #0a0a0a; transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0, 255, 255, 0.3); }
-            .preset-card.active { background: #00ff00; color: #0a0a0a; border-color: #00ff00; animation: glow 1s infinite; }
-            @keyframes glow { 0%, 100% { box-shadow: 0 0 20px #00ff00; } 50% { box-shadow: 0 0 40px #00ff00, 0 0 60px #00ff00; } }
+            .preset-card.active { background: #00ff00; color: #0a0a0a; border-color: #00ff00; }
             .preset-name { font-weight: bold; margin-bottom: 5px; }
             .preset-freq { color: #888; font-size: 0.9em; }
             
@@ -44,8 +51,7 @@ def read_root():
             input[type="range"] { width: 200px; }
             
             .status { text-align: center; padding: 15px; background: #1a1a2a; border-radius: 10px; border: 1px solid #00ffff; color: #00ff00; margin-top: 20px; }
-            .playing { color: #ff0066; animation: blink 1s infinite; }
-            @keyframes blink { 50% { opacity: 0.5; } }
+            .playing { color: #ff0066; }
         </style>
     </head>
     <body>
@@ -53,10 +59,22 @@ def read_root():
             <h1>NeuroSync</h1>
             <p class="subtitle">Adaptive Brainwave Audio Studio v0.1.0 (2026-05-24)</p>
             
-            <div class="visualizer">
-                <div class="brainwave-sphere" id="sphere"></div>
-                <div class="frequency-display">
-                    Beat: <span id="beat-freq">0.0</span> Hz | Carrier: <span id="carrier-freq">220.0</span> Hz
+            <div class="brain-visualizer">
+                <div class="brain-side">
+                    <div class="brain-hemisphere"></div>
+                    <div class="ear-label">LEFT EAR</div>
+                    <div class="ear-freq" id="left-freq">220.0 Hz</div>
+                </div>
+                
+                <div class="brain-middle">
+                    <div class="hemisync-display" id="beat-freq">10</div>
+                    <div class="hemisync-label">HEMISYNC</div>
+                </div>
+                
+                <div class="brain-side">
+                    <div class="brain-hemisphere"></div>
+                    <div class="ear-label">RIGHT EAR</div>
+                    <div class="ear-freq" id="right-freq">230.0 Hz</div>
                 </div>
             </div>
             
@@ -74,7 +92,7 @@ def read_root():
             
             <div class="controls">
                 <div class="control-group">
-                    <label for="beat-slider">Beat Frequency: <span id="beat-value">10</span> Hz</label>
+                    <label for="beat-slider">Beat: <span id="beat-value">10</span> Hz</label>
                     <input type="range" id="beat-slider" min="1" max="30" value="10" oninput="updateFreqs()">
                 </div>
                 <div class="control-group">
@@ -125,13 +143,12 @@ def read_root():
                 document.getElementById('beat-value').textContent = beatFreq;
                 document.getElementById('carrier-value').textContent = carrierFreq;
                 document.getElementById('beat-freq').textContent = beatFreq;
-                document.getElementById('carrier-freq').textContent = carrierFreq;
+                document.getElementById('left-freq').textContent = carrierFreq + ' Hz';
+                document.getElementById('right-freq').textContent = (carrierFreq + beatFreq) + ' Hz';
                 
                 if (leftOsc && rightOsc) {
-                    const leftFreq = carrierFreq;
-                    const rightFreq = carrierFreq + beatFreq;
-                    leftOsc.frequency.setValueAtTime(leftFreq, audioCtx.currentTime);
-                    rightOsc.frequency.setValueAtTime(rightFreq, audioCtx.currentTime);
+                    leftOsc.frequency.setValueAtTime(carrierFreq, audioCtx.currentTime);
+                    rightOsc.frequency.setValueAtTime(carrierFreq + beatFreq, audioCtx.currentTime);
                 }
             }
             
@@ -154,13 +171,12 @@ def read_root():
                 document.getElementById('beat-value').textContent = beat;
                 document.getElementById('carrier-value').textContent = carrier;
                 document.getElementById('beat-freq').textContent = beat;
-                document.getElementById('carrier-freq').textContent = carrier;
+                document.getElementById('left-freq').textContent = carrier + ' Hz';
+                document.getElementById('right-freq').textContent = (carrier + beat) + ' Hz';
                 
                 if (leftOsc && rightOsc) {
-                    const leftF = carrierFreq;
-                    const rightF = carrierFreq + beatFreq;
-                    leftOsc.frequency.setValueAtTime(leftF, audioCtx.currentTime);
-                    rightOsc.frequency.setValueAtTime(rightF, audioCtx.currentTime);
+                    leftOsc.frequency.setValueAtTime(carrier, audioCtx.currentTime);
+                    rightOsc.frequency.setValueAtTime(carrier + beat, audioCtx.currentTime);
                 }
                 document.getElementById('status').textContent = name + ' active';
             }
