@@ -1,0 +1,33 @@
+version: '3.9'
+
+services:
+  neuro-app:
+    build: .
+    container_name: 45-neurosync-app
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+    ports:
+      - "8045:8045"
+
+  postgres:
+    image: postgres:16
+    container_name: 45-neurosync-postgres
+    environment:
+      POSTGRES_USER: neuro
+      POSTGRES_PASSWORD: neuro
+      POSTGRES_DB: neurosync
+    ports:
+      - "8245:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: 45-neurosync-redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:
