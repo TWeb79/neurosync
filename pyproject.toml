@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "neurosync"
-version = "0.1.0"
+version = "2.0.0"
 description = "NeuroSync — Adaptive Brainwave Audio Studio"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -26,6 +26,7 @@ dependencies = [
     "pedalboard>=0.9.0",
     "fastapi>=0.115.0",
     "uvicorn>=0.30.0",
+    "PySide6>=6.7.0",
 ]
 
 [project.optional-dependencies]
@@ -35,6 +36,7 @@ dev = [
     "black>=24.0.0",
     "ruff>=0.4.0",
     "mypy>=1.10.0",
+    "httpx>=0.28.0",
 ]
 
 [project.scripts]

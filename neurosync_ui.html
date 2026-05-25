@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NeuroSync — Adaptive Brainwave Audio Studio v0.2.0</title>
+<title>NeuroSync — Adaptive Brainwave Audio Studio v2.0.0</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;600&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
@@ -349,13 +349,13 @@ input[type="range"]::-moz-range-thumb {
 .layers-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 7px;
+  gap: 10px;
 }
 .layer-toggle {
   background: var(--c-surface);
   border: 1px solid var(--c-border);
-  border-radius: 9px;
-  padding: 8px 11px;
+  border-radius: 12px;
+  padding: 14px 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -588,7 +588,7 @@ input[type="range"]::-moz-range-thumb {
 <header>
   <div style="display:flex;align-items:center;gap:10px">
     <div class="logo">NEURO<span>SYNC</span></div>
-    <div class="version">v0.2.0 · 2026-05-24</div>
+    <div class="version">v2.0.1 · 2026-05-25 · By TWeb79</div>
   </div>
   <div class="status-group">
     <div class="status-dot idle" id="status-dot"></div>
@@ -745,27 +745,42 @@ input[type="range"]::-moz-range-thumb {
       <div class="section-title" style="margin-bottom:8px">Audio Layers</div>
       <div class="layers-grid">
         <div class="layer-toggle on" id="lt-binaural" onclick="toggleLayer('binaural')">
-          <span class="lt-label">BINAURAL</span>
-          <div class="lt-dot"></div>
+          <div style="text-align:center">
+            <div class="lt-label" style="margin-bottom:2px">BINAURAL</div>
+            <div style="font-size:8px;color:var(--c-cyan);font-weight:600">HEMI-SYNC · DIFFERENT FREQ PER EAR</div>
+          </div>
+          <div class="lt-dot" style="margin-left:6px"></div>
         </div>
         <div class="layer-toggle" id="lt-iso" onclick="toggleLayer('iso')">
-          <span class="lt-label">ISOCHRONIC</span>
-          <div class="lt-dot"></div>
+          <div style="text-align:center">
+            <div class="lt-label" style="margin-bottom:2px">ISOCHRONIC</div>
+            <div style="font-size:8px;color:#10b981">PULSED TONES · NO HEADPHONES NEEDED</div>
+          </div>
+          <div class="lt-dot" style="margin-left:6px"></div>
         </div>
         <div class="layer-toggle" id="lt-harmonic" onclick="toggleLayer('harmonic')">
-          <span class="lt-label">HARMONICS</span>
-          <div class="lt-dot"></div>
+          <div style="text-align:center">
+            <div class="lt-label" style="margin-bottom:2px">HARMONICS</div>
+            <div style="font-size:8px;color:#f59e0b">OVERTONES · 2X CARRIER</div>
+          </div>
+          <div class="lt-dot" style="margin-left:6px"></div>
         </div>
         <div class="layer-toggle" id="lt-ambient" onclick="toggleLayer('ambient')">
-          <span class="lt-label">AMBIENT PAD</span>
-          <div class="lt-dot"></div>
+          <div style="text-align:center">
+            <div class="lt-label" style="margin-bottom:2px">AMBIENT PAD</div>
+            <div style="font-size:8px;color:#8b5cf6">FILTERED SUB-BASS DRONE</div>
+          </div>
+          <div class="lt-dot" style="margin-left:6px"></div>
         </div>
       </div>
     </div>
 
     <!-- Session timeline (only visible for descent presets) -->
     <div class="timeline" id="timeline">
-      <div class="section-title" style="margin-bottom:4px">Session Timeline</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <div class="section-title" style="margin-bottom:0">Session Timeline</div>
+        <div id="tl-countdown" style="font-family:'Orbitron',monospace;font-size:11px;color:var(--c-cyan)">00:00</div>
+      </div>
       <div class="tl-track">
         <div class="tl-segments">
           <div class="tl-seg" style="background:#10b981;width:8%"></div>
@@ -775,7 +790,7 @@ input[type="range"]::-moz-range-thumb {
           <div class="tl-seg" style="background:#4338ca;width:20%"></div>
           <div class="tl-seg" style="background:#4338ca;width:14%"></div>
         </div>
-        <div class="tl-needle" id="tl-needle" style="left:25%"></div>
+        <div class="tl-needle" id="tl-needle" style="left:0%"></div>
       </div>
       <div class="tl-labels">
         <span>Beta 16Hz</span>
@@ -901,6 +916,55 @@ input[type="range"]::-moz-range-thumb {
 
     </div><!-- /.presets -->
 
+    <!-- Disclaimer Overlay -->
+    <div id="disclaimer-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(5,5,8,0.95);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px">
+      <div class="glass" style="max-width:500px;padding:24px;border-radius:16px">
+        <div class="section-title" style="margin-bottom:12px;font-size:14px">Welcome to NeuroSync</div>
+        <div style="font-size:11px;line-height:1.6;color:var(--c-text);margin-bottom:16px">
+          <p style="margin-bottom:10px"><strong>Hemisphere Synchronization</strong> uses binaural beats to create phase differences between brain hemispheres, potentially promoting meditative states through entrainment at specific frequencies.</p>
+          <p style="margin-bottom:10px"><strong>Philosophy:</strong> This technique is based on the principle that synchronized brainwaves correlate with relaxed, focused mental states. The app provides an artistic interpretation of these concepts.</p>
+          <p style="color:var(--c-rose);font-weight:600">⚠️ ENTERTAINMENT PURPOSES ONLY. Use at safe volumes. Not a medical device. Use at your own risk. Stop if you experience discomfort.</p>
+        </div>
+        <button onclick="document.getElementById('disclaimer-overlay').style.display='none'" class="play-btn" style="width:100%;padding:12px;font-size:13px">I understand — Enter NeuroSync</button>
+      </div>
+    </div>
+
+    <div class="section-title" style="margin-top:12px">Solfeggio Frequencies</div>
+    <div class="presets">
+      <div class="pcard" style="--pc-tint:rgba(255,100,100,0.12);--pc-solid:#ff6464;--pc-glow:rgba(255,100,100,0.2)" onclick="loadPreset(this,0,174,'theta','#ff6464',false)">
+        <div class="pc-top"><div class="pc-name">174 Hz</div><div class="pc-dot" style="background:#ff6464"></div></div>
+        <div class="pc-desc">Pain relief</div>
+      </div>
+      <div class="pcard" style="--pc-tint:rgba(255,150,100,0.12);--pc-solid:#ff9664;--pc-glow:rgba(255,150,100,0.2)" onclick="loadPreset(this,0,285,'theta','#ff9664',false)">
+        <div class="pc-top"><div class="pc-name">285 Hz</div><div class="pc-dot" style="background:#ff9664"></div></div>
+        <div class="pc-desc">Tissue restoration</div>
+      </div>
+      <div class="pcard" style="--pc-tint:rgba(255,200,100,0.12);--pc-solid:#ffc864;--pc-glow:rgba(255,200,100,0.2)" onclick="loadPreset(this,0,396,'alpha','#ffc864',false)">
+        <div class="pc-top"><div class="pc-name">396 Hz</div><div class="pc-dot" style="background:#ffc864"></div></div>
+        <div class="pc-desc">Liberates fear</div>
+      </div>
+      <div class="pcard" style="--pc-tint:rgba(200,255,100,0.12);--pc-solid:#c8ff64;--pc-glow:rgba(200,255,100,0.2)" onclick="loadPreset(this,0,417,'alpha','#c8ff64',false)">
+        <div class="pc-top"><div class="pc-name">417 Hz</div><div class="pc-dot" style="background:#c8ff64"></div></div>
+        <div class="pc-desc">Undo situations</div>
+      </div>
+      <div class="pcard" style="--pc-tint:rgba(100,255,150,0.12);--pc-solid:#64ff96;--pc-glow:rgba(100,255,150,0.2)" onclick="loadPreset(this,0,528,'alpha','#64ff96',false)">
+        <div class="pc-top"><div class="pc-name">528 Hz</div><div class="pc-dot" style="background:#64ff96"></div></div>
+        <div class="pc-desc">DNA repair</div>
+      </div>
+      <div class="pcard" style="--pc-tint:rgba(100,255,255,0.12);--pc-solid:#64ffff;--pc-glow:rgba(100,255,255,0.2)" onclick="loadPreset(this,0,639,'beta','#64ffff',false)">
+        <div class="pc-top"><div class="pc-name">639 Hz</div><div class="pc-dot" style="background:#64ffff"></div></div>
+        <div class="pc-desc">Relationship healing</div>
+      </div>
+      <div class="pcard" style="--pc-tint:rgba(100,150,255,0.12);--pc-solid:#6496ff;--pc-glow:rgba(100,150,255,0.2)" onclick="loadPreset(this,0,741,'beta','#6496ff',false)">
+        <div class="pc-top"><div class="pc-name">741 Hz</div><div class="pc-dot" style="background:#6496ff"></div></div>
+        <div class="pc-desc">Awaken intuition</div>
+      </div>
+      <div class="pcard" style="--pc-tint:rgba(150,100,255,0.12);--pc-solid:#9664ff;--pc-glow:rgba(150,100,255,0.2)" onclick="loadPreset(this,0,852,'beta','#9664ff',false)">
+        <div class="pc-top"><div class="pc-name">852 Hz</div><div class="pc-dot" style="background:#9664ff"></div></div>
+        <div class="pc-desc">Spiritual return</div>
+      </div>
+    </div>
+
     <div class="warning" id="hphone-warn">
       🎧 Headphones required for binaural separation. Each ear must receive a different frequency — without headphones, the beat effect is lost.
     </div>
@@ -917,8 +981,8 @@ input[type="range"]::-moz-range-thumb {
 
 <script>
 /* ═══════════════════════════════════════════════
-   STATE
-═══════════════════════════════════════════════ */
+    STATE
+    ═══════════════════════════════════════════════ */
 let audioCtx = null;
 let leftOsc = null, rightOsc = null;
 let leftGain = null, rightGain = null;
@@ -927,6 +991,20 @@ let isPlaying = false;
 let beatFreq = 10.0;
 let carrierFreq = 220.0;
 let volPct = 0.65;
+
+// Audio layer nodes
+let isoOsc = null, isoGain = null, isoPulse = null, isoPulseGain = null;
+let harmOsc = null, harmGain = null;
+let ambientOsc = null, ambientGain = null;
+let ambientFilter = null;
+
+// Layer states
+let layers = {
+  binaural: true,
+  iso: false,
+  harmonic: false,
+  ambient: false
+};
 
 // Animation state
 let wavePhase = 0;
@@ -990,6 +1068,9 @@ function updateUI() {
    CARRIER / VOLUME
 ═══════════════════════════════════════════════ */
 function updateCarrier(v) {
+  // Check disclaimer acceptance
+  if (document.getElementById('disclaimer-overlay').style.display !== 'none') return;
+
   carrierFreq = parseFloat(v);
   document.getElementById('carrier-val').textContent = Math.round(carrierFreq);
   updateUI();
@@ -1003,10 +1084,8 @@ function updateCarrier(v) {
 function updateVol(v) {
   volPct = v / 100;
   document.getElementById('vol-val').textContent = Math.round(v);
-  if (leftGain && rightGain && isPlaying && audioCtx) {
-    const g = volPct * 0.18;
-    leftGain.gain.setTargetAtTime(g, audioCtx.currentTime, 0.05);
-    rightGain.gain.setTargetAtTime(g, audioCtx.currentTime, 0.05);
+  if (isPlaying) {
+    updateLayerGains();
   }
 }
 
@@ -1105,6 +1184,9 @@ function drawKnob() {
 }
 
 knobEl.addEventListener('mousedown', e => {
+  // Check disclaimer acceptance
+  if (document.getElementById('disclaimer-overlay').style.display !== 'none') return;
+
   knobDragging = true;
   knobStartY   = e.clientY;
   knobStartVal = beatFreq;
@@ -1123,6 +1205,9 @@ window.addEventListener('mousemove', e => {
 window.addEventListener('mouseup', () => { knobDragging = false; });
 
 knobEl.addEventListener('wheel', e => {
+  // Check disclaimer acceptance
+  if (document.getElementById('disclaimer-overlay').style.display !== 'none') return;
+
   e.preventDefault();
   beatFreq = Math.max(0.5, Math.min(40, beatFreq - e.deltaY * 0.02));
   updateUI();
@@ -1300,12 +1385,13 @@ function drawBg() {
 }
 
 /* ═══════════════════════════════════════════════
-   AUDIO ENGINE
-═══════════════════════════════════════════════ */
+    AUDIO ENGINE
+    ═══════════════════════════════════════════════ */
 function initAudio() {
   if (audioCtx) return;
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
+  // Binaural layer
   leftOsc  = audioCtx.createOscillator();
   rightOsc = audioCtx.createOscillator();
   leftGain  = audioCtx.createGain();
@@ -1313,7 +1399,6 @@ function initAudio() {
   leftPan  = audioCtx.createStereoPanner();
   rightPan = audioCtx.createStereoPanner();
 
-  // Hard pan each channel — CRITICAL for binaural effect
   leftPan.pan.setValueAtTime(-1, audioCtx.currentTime);
   rightPan.pan.setValueAtTime( 1, audioCtx.currentTime);
 
@@ -1323,7 +1408,6 @@ function initAudio() {
   leftOsc.frequency.setValueAtTime(carrierFreq,             audioCtx.currentTime);
   rightOsc.frequency.setValueAtTime(carrierFreq + beatFreq, audioCtx.currentTime);
 
-  // Start silent
   leftGain.gain.setValueAtTime(0, audioCtx.currentTime);
   rightGain.gain.setValueAtTime(0, audioCtx.currentTime);
 
@@ -1337,9 +1421,85 @@ function initAudio() {
 
   leftOsc.start();
   rightOsc.start();
+
+  // Isochronic layer (pulsed tone with gain modulation)
+  isoOsc = audioCtx.createOscillator();
+  isoGain = audioCtx.createGain();
+  isoPulse = audioCtx.createOscillator();  // Pulse modulation at beat rate
+  isoPulseGain = audioCtx.createGain();
+  isoOsc.type = 'sine';
+  isoOsc.frequency.setValueAtTime(carrierFreq, audioCtx.currentTime);
+  isoPulse.type = 'sine';
+  isoPulse.frequency.setValueAtTime(beatFreq, audioCtx.currentTime);
+  isoPulseGain.gain.setValueAtTime(0.5, audioCtx.currentTime);  // 50% pulse depth
+  isoGain.gain.setValueAtTime(0, audioCtx.currentTime);
+  isoPulse.connect(isoPulseGain);
+  isoPulseGain.connect(isoGain.gain);
+  isoOsc.connect(isoGain);
+  isoGain.connect(audioCtx.destination);
+  isoOsc.start();
+  isoPulse.start();
+
+  // Harmonic layer (chord overtones)
+  harmOsc = audioCtx.createOscillator();
+  harmGain = audioCtx.createGain();
+  harmOsc.type = 'sine';
+  harmOsc.frequency.setValueAtTime(carrierFreq * 2, audioCtx.currentTime);
+  harmGain.gain.setValueAtTime(0, audioCtx.currentTime);
+  harmOsc.connect(harmGain);
+  harmGain.connect(audioCtx.destination);
+  harmOsc.start();
+
+  // Ambient pad layer (filtered noise)
+  ambientOsc = audioCtx.createOscillator();
+  ambientGain = audioCtx.createGain();
+  ambientFilter = audioCtx.createBiquadFilter();
+  ambientOsc.type = 'sine';
+  ambientOsc.frequency.setValueAtTime(60, audioCtx.currentTime);
+  ambientFilter.type = 'lowpass';
+  ambientFilter.frequency.setValueAtTime(120, audioCtx.currentTime);
+  ambientGain.gain.setValueAtTime(0, audioCtx.currentTime);
+  ambientOsc.connect(ambientFilter);
+  ambientFilter.connect(ambientGain);
+  ambientGain.connect(audioCtx.destination);
+  ambientOsc.start();
+}
+
+function updateLayerGains() {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const baseGain = volPct * 0.18;
+  const layerGain = baseGain * 0.7;
+
+  // Binaural
+  leftGain.gain.setTargetAtTime(layers.binaural ? baseGain : 0, t, 0.05);
+  rightGain.gain.setTargetAtTime(layers.binaural ? baseGain : 0, t, 0.05);
+
+  // Isochronic - pulsed at beat frequency
+  if (layers.iso) {
+    isoGain.gain.setTargetAtTime(layerGain, t, 0.05);
+    isoOsc.frequency.setTargetAtTime(carrierFreq, t, 0.05);
+    isoPulse.frequency.setTargetAtTime(Math.max(0.5, beatFreq), t, 0.05);
+    isoPulseGain.gain.setTargetAtTime(0.5, t, 0.05);  // 50% modulation depth
+  } else {
+    isoGain.gain.setTargetAtTime(0, t, 0.05);
+    isoPulseGain.gain.setTargetAtTime(0, t, 0.05);
+  }
+
+  // Harmonic (2x carrier frequency for richness)
+  harmGain.gain.setTargetAtTime(layers.harmonic ? layerGain * 0.5 : 0, t, 0.05);
+
+  // Ambient (sub-bass drone)
+  ambientGain.gain.setTargetAtTime(layers.ambient ? layerGain * 0.3 : 0, t, 0.05);
 }
 
 function togglePlay() {
+  // Check disclaimer acceptance
+  if (document.getElementById('disclaimer-overlay').style.display !== 'none') {
+    alert('Please confirm the disclaimer first.');
+    return;
+  }
+
   initAudio();
 
   const btn    = document.getElementById('play-btn');
@@ -1350,6 +1510,9 @@ function togglePlay() {
     // Fade out
     leftGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.6);
     rightGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.6);
+    isoGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.6);
+    harmGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.6);
+    ambientGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.6);
     btn.textContent = '▶ START';
     btn.classList.remove('playing');
     dot.classList.add('idle');
@@ -1358,9 +1521,12 @@ function togglePlay() {
     // 3-second safety ramp-up
     const targetGain = volPct * 0.18;
     leftGain.gain.setValueAtTime(0, audioCtx.currentTime);
-    leftGain.gain.linearRampToValueAtTime(targetGain, audioCtx.currentTime + 3.0);
+    leftGain.gain.linearRampToValueAtTime(layers.binaural ? targetGain : 0, audioCtx.currentTime + 3.0);
     rightGain.gain.setValueAtTime(0, audioCtx.currentTime);
-    rightGain.gain.linearRampToValueAtTime(targetGain, audioCtx.currentTime + 3.0);
+    rightGain.gain.linearRampToValueAtTime(layers.binaural ? targetGain : 0, audioCtx.currentTime + 3.0);
+    isoGain.gain.linearRampToValueAtTime(layers.iso ? targetGain * 0.7 : 0, audioCtx.currentTime + 3.0);
+    harmGain.gain.linearRampToValueAtTime(layers.harmonic ? targetGain * 0.35 : 0, audioCtx.currentTime + 3.0);
+    ambientGain.gain.linearRampToValueAtTime(layers.ambient ? targetGain * 0.2 : 0, audioCtx.currentTime + 3.0);
     btn.textContent = '■ STOP';
     btn.classList.add('playing');
     dot.classList.remove('idle');
@@ -1374,6 +1540,12 @@ function togglePlay() {
    PRESET LOADER
 ═══════════════════════════════════════════════ */
 function loadPreset(el, beat, carrier, bandId, color, hasTimeline) {
+  // Check disclaimer acceptance
+  if (document.getElementById('disclaimer-overlay').style.display !== 'none') {
+    alert('Please confirm the disclaimer first.');
+    return;
+  }
+
   // Activate card
   document.querySelectorAll('.pcard').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
@@ -1402,30 +1574,68 @@ function loadPreset(el, beat, carrier, bandId, color, hasTimeline) {
 }
 
 /* ═══════════════════════════════════════════════
-   LAYER TOGGLES
-═══════════════════════════════════════════════ */
+    LAYER TOGGLES
+    ═══════════════════════════════════════════════ */
 function toggleLayer(id) {
+  // Check disclaimer acceptance
+  if (document.getElementById('disclaimer-overlay').style.display !== 'none') return;
+
   const el = document.getElementById('lt-' + id);
   el.classList.toggle('on');
+  layers[id] = el.classList.contains('on');
   refreshHeadphoneWarning();
+  initAudio();
+  updateLayerGains();
 }
 
 function refreshHeadphoneWarning() {
-  const binOn = document.getElementById('lt-binaural').classList.contains('on');
-  const isoOn = document.getElementById('lt-iso').classList.contains('on');
+  const binOn = layers.binaural;
+  const isoOn = layers.iso;
   const warn  = document.getElementById('hphone-warn');
-  // Show warning only when binaural is active (isochronic doesn't need headphones)
-  warn.style.display = binOn && !isoOn ? 'block' : (binOn ? 'block' : 'none');
+  // Show warning when binaural is active without isochronic overlay
+  warn.style.display = binOn && !isoOn ? 'block' : 'none';
 }
 
 /* ═══════════════════════════════════════════════
-   BOOT
-═══════════════════════════════════════════════ */
+    BOOT
+    ═══════════════════════════════════════════════ */
 updateUI();
 drawKnob();
 drawBg();
 drawWave();
 animBrain();
+
+// Timeline animation (for sleep_descent preset)
+let timelineStart = null;
+let timelineDuration = 5400; // 90 minutes in seconds
+
+function updateTimeline(ts) {
+  const tl = document.getElementById('timeline');
+  if (!tl.classList.contains('visible')) return;
+
+  if (!timelineStart) timelineStart = ts;
+  const elapsed = (ts - timelineStart) / 1000;
+  const progress = Math.min(elapsed / timelineDuration, 1);
+
+  const needle = document.getElementById('tl-needle');
+  needle.style.left = (progress * 100) + '%';
+
+  const remaining = Math.max(0, timelineDuration - elapsed);
+  const mins = Math.floor(remaining / 60);
+  const secs = Math.floor(remaining % 60);
+  document.getElementById('tl-countdown').textContent =
+    mins.toString().padStart(2, '0') + ':' + secs.toString().padStart(2, '0');
+
+  if (progress < 1) requestAnimationFrame(updateTimeline);
+}
+
+// Reset timeline when preset changes
+const origLoadPreset = loadPreset;
+loadPreset = function(el, beat, carrier, bandId, color, hasTimeline) {
+  timelineStart = null;
+  origLoadPreset(el, beat, carrier, bandId, color, hasTimeline);
+  if (hasTimeline) requestAnimationFrame(updateTimeline);
+};
 </script>
 </body>
 </html>
