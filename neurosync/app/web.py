@@ -7,7 +7,7 @@ import os
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
-app = FastAPI(title="NeuroSync v2.0.0")
+app = FastAPI(title="NeuroSync v2.0.2")
 
 try:
     import socketio
@@ -39,7 +39,7 @@ def _get_html() -> str:
 @app.get("/api/status")
 def get_status():
     """Get current session status."""
-    return {"version": "2.0.0", "is_playing": False, "current_preset": None, "session_elapsed": 0}
+    return {"version": "2.0.2", "is_playing": False, "current_preset": None, "session_elapsed": 0}
 
 
 @app.post("/api/session/stop")

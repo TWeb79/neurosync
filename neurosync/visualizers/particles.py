@@ -38,13 +38,13 @@ class ParticleSystem:
         self.slow_pos = np.mod(self.slow_pos, [self.width, self.height])
         self.fast_pos = np.mod(self.fast_pos, [self.width, self.height])
 
-    def set_band_colors(self, band: str) -> tuple:
+    def set_band_colors(self, band: str) -> tuple[tuple[int, int, int], ...]:
         """Get particle colors for current band."""
-        colors = {
-            "delta": [(10, 20, 80), (30, 50, 120)],
-            "theta": [(80, 40, 150), (150, 80, 200)],
-            "alpha": [(0, 200, 220), (0, 150, 180)],
-            "beta": [(16, 185, 129), (30, 200, 150)],
-            "gamma": [(244, 63, 94), (255, 100, 130)],
+        colors: dict[str, tuple[tuple[int, int, int], ...]] = {
+            "delta": ((10, 20, 80), (30, 50, 120)),
+            "theta": ((80, 40, 150), (150, 80, 200)),
+            "alpha": ((0, 200, 220), (0, 150, 180)),
+            "beta": ((16, 185, 129), (30, 200, 150)),
+            "gamma": ((244, 63, 94), (255, 100, 130)),
         }
-        return colors.get(band, [(0, 200, 220), (0, 150, 180)])
+        return colors.get(band, ((0, 200, 220), (0, 150, 180)))
