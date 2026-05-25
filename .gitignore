@@ -12,6 +12,7 @@ eggs/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
 # Virtual environments
 venv/
@@ -19,6 +20,7 @@ ENV/
 env/
 .venv/
 neurosync.egg-info/
+.env/
 
 # IDE
 .vscode/
@@ -26,38 +28,99 @@ neurosync.egg-info/
 *.swp
 *.swo
 *~
+*.sublime-project
+*.sublime-workspace
+.project
+.pydevproject
+.settings/
 
-# Testing
+# Testing & Coverage
 .pytest_cache/
 .coverage
+.coverage.*
 htmlcov/
 .tox/
 .nox/
+.hypothesis/
+junit.xml
+coverage.xml
 
 # Docker
 .docker/
+docker-compose.override.yml
 
 # OS
 .DS_Store
+.AppleDouble
+.LSOverride
 Thumbs.db
+ehthumbs.db
+Desktop.ini
 
 # Logs
 *.log
 logs/
+*.log.gz
+debug/
 
 # Environment variables
 .env
 .env.local
+.env.*.local
 
 # PyInstaller
 *.manifest
 *.spec
+*.exe
 
 # Audio cache
 *.wav
 *.flac
 *.ogg
+*.mp3
+*.aac
 
 # Qt
 *.qmlc
 qrc_*.cpp
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+*.tmp
+.tmp/
+temp/
+*.bak
+*.swp
+*~
+.~*
+
+# Node/Web build artifacts
+node_modules/
+dist/
+.parcel-cache/
+.next/
+out/
+
+# Profiling
+.pyprof2calltree
+*.prof
+.pyre/
+
+# IDE generated
+.mypy_cache/
+.dmypy.json
+dmypy.json
+*.pyo
+
+# Lock files (optional - uncomment if using specific lock strategy)
+# poetry.lock
+# Pipfile.lock
+
+# Release & deployment
+build/
+*.egg-info/
+.eggs/
