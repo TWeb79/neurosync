@@ -13,7 +13,9 @@ from neurosync.dsp.core import (
     interpolate_frequency,
     BinauralGenerator,
 )
-from neurosync.dsp.harmonic import IsochronicGenerator, HarmonicLayer, PinkNoiseGenerator, AmbientPadLayer, SubBassPulseGenerator
+from neurosync.dsp.harmonic import IsochronicGenerator as HarmonicIsochronicGenerator
+from neurosync.dsp.isochronic import IsochronicGenerator
+from neurosync.dsp.harmonic import HarmonicLayer, PinkNoiseGenerator, AmbientPadLayer, SubBassPulseGenerator
 
 
 class TestSineWaveGeneration:
@@ -211,6 +213,37 @@ class TestIsochronicGenerator:
         gen = IsochronicGenerator()
         signal = gen.generate(220.0, 0.0, 0.5)
         # Should generate a steady signal with no modulation
+
+    def test_isochronic_generator_sample_rate(self):
+        """Test isochronic generator sample rate initialization."""
+        gen = IsochronicGenerator(sample_rate=48000)
+        assert gen.sample_rate == 48000
+
+    def test_isochronic_generator_default_sample_rate(self):
+        """Test isochronic generator default sample rate."""
+        gen = IsochronicGenerator()
+        assert gen.sample_rate == 44100
+
+    def test_isochronic_envelope_clipping(self):
+        """Test that isochronic envelope is properly clipped."""
+        gen = IsochronicGenerator()
+        signal = gen.generate(220.0, 10.0, 1.0)
+        # All values should be between -1 and 1
+        assert np.all(signal >= -1.0) and np.all(signal <= 1.0)
+
+
+class TestHarmonicIsochronicGenerator:
+    """Tests for harmonic module's isochronic generator."""
+
+    def test_harmonic_isochronic_output(self):
+        gen = HarmonicIsochronicGenerator()
+        signal = gen.generate(220.0, 10.0, 1.0)
+        assert len(signal) == 44100
+        assert signal.dtype == np.float64
+
+    def test_harmonic_isochronic_sample_rate(self):
+        gen = HarmonicIsochronicGenerator(sample_rate=48000)
+        assert gen.sample_rate == 48000
 
 
 class TestHarmonicLayer:

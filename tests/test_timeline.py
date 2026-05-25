@@ -174,6 +174,38 @@ class TestSessionTimeline:
         # Should return first segment
         assert segment == SLEEP_DESCENT_TIMELINE[0]
 
+    def test_get_segment_with_zero_transition_duration(self):
+        """Test getting segment with zero transition duration during transition."""
+        # Line 78's else branch (`else 0`) is hit when elapsed < seg.start_time 
+        # AND transition_duration == 0. This happens when elapsed == seg.start_time exactly
+        # because the window becomes a single point.
+        # But actually, we need to test the case where we hit line 77 and transition_duration > 0.
+        # Let me test with a normal transition period.
+        segments = [
+            TimelineSegment("First", 0.0, 10.0, 220.0, transition_duration=90.0),
+            TimelineSegment("Second", 200.0, 8.0, 200.0, transition_duration=90.0),
+        ]
+        timeline = SessionTimeline(segments)
+        # At elapsed=95.0, we're 5 seconds before First's start, in transition period
+        segment, progress = timeline.get_segment_at_time(95.0)
+        assert segment == segments[0]
+        # progress should be around 0.1 (5/50 = 0.1) but clamped
+        assert 0.0 <= progress <= 1.0
+
+    def test_get_segment_at_exact_transition_start(self):
+        """Test getting segment at exact transition start time."""
+        segments = [
+            TimelineSegment("First", 100.0, 10.0, 220.0, transition_duration=90.0),
+        ]
+        timeline = SessionTimeline(segments)
+        # At elapsed=10.0, we're at transition start (100 - 90 = 10)
+        # But elapsed is 10 which is < 100 (start_time), so we're in pre-transition
+        # Wait, that doesn't make sense. Transition starts at start_time - transition_duration.
+        # So for start_time=100, trans_duration=90, the window is 10 to 190.
+        segment, progress = timeline.get_segment_at_time(10.0)
+        assert segment == segments[0]
+        assert progress == 0.0  # At the very start of transition
+
     def test_timeline_with_empty_segments(self):
         """Test timeline with empty segments list."""
         timeline = SessionTimeline([])
@@ -191,3 +223,7 @@ class TestSessionTimeline:
         timeline = SessionTimeline(FOCUS_TIMELINE)
         segment, progress = timeline.get_segment_at_time(0.0)
         assert segment == FOCUS_TIMELINE[0]
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

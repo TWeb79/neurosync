@@ -1,7 +1,7 @@
-# NeuroSync — Implementation Status v2.0.4
+# NeuroSync — Implementation Status v2.0.5
 **Author:** Inventions4All - github:TWeb79  
 **Date:** 2026-05-25  
-**Version:** 2.0.1
+**Version:** 2.0.5
 
 ---
 
@@ -126,4 +126,4 @@ The carrier should avoid exact multiples of the room's standing wave frequencies
 
 ---
 
-*Plan version 2.0.4 | NeuroSync v2.0.4 | 2026-05-25*
+*Plan version 2.0.5 | NeuroSync v2.0.5 | 2026-05-25*

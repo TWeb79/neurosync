@@ -3,6 +3,7 @@ Audio Engine - Realtime Audio Playback
 Author: Inventions4All - github:TWeb79
 """
 
+import logging
 import numpy as np
 import sounddevice as sd
 from dataclasses import dataclass
@@ -11,6 +12,8 @@ from typing import Callable, Optional
 from neurosync.audio.mixer import AudioMixer
 from neurosync.dsp.core import BinauralGenerator
 from neurosync.dsp.harmonic import IsochronicGenerator, HarmonicLayer, AmbientPadLayer, PinkNoiseGenerator, SubBassPulseGenerator
+
+logger = logging.getLogger(__name__)
 
 
 class BrainwaveBand(Enum):
@@ -84,9 +87,24 @@ class AudioEngine:
         """Set carrier and beat frequencies.
 
         Args:
-            carrier_freq: Carrier frequency in Hz
-            beat_freq: Beat frequency in Hz
+            carrier_freq: Carrier frequency in Hz (must be > 0)
+            beat_freq: Beat frequency in Hz (must be > 0)
+            
+        Raises:
+            ValueError: If frequencies are not positive or exceed safe ranges
         """
+        # Validate carrier frequency
+        if carrier_freq <= 0:
+            raise ValueError(f"Carrier frequency must be positive, got {carrier_freq}")
+        if carrier_freq > 20000:
+            raise ValueError(f"Carrier frequency exceeds safe range (>20kHz): {carrier_freq}")
+        
+        # Validate beat frequency
+        if beat_freq <= 0:
+            raise ValueError(f"Beat frequency must be positive, got {beat_freq}")
+        if beat_freq > 100:
+            raise ValueError(f"Beat frequency exceeds safe range (>100Hz): {beat_freq}")
+        
         self._carrier_freq = carrier_freq
         self._beat_freq = beat_freq
         self._binaural_generator.set_target_carrier(carrier_freq)
@@ -138,7 +156,7 @@ class AudioEngine:
     def _audio_callback(self, outdata, frames, time, status):
         """Internal callback for audio stream."""
         if status:
-            print(f"Audio status: {status}")
+            logger.warning(f"Audio stream status: {status}")
 
         if self._is_playing:
             # Generate audio from all layers

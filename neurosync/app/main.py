@@ -1,7 +1,7 @@
 """
 Main Application Entry Point
 Author: Inventions4All - github:TWeb79
-Version: 2.0.4 (2026-05-25)
+Version: 2.0.5 (2026-05-25)
 """
 
 import sys
@@ -18,7 +18,7 @@ def main():
     view = QWebEngineView()
     html_path = os.path.join(os.path.dirname(__file__), "..", "..", "neurosync_ui.html")
     view.load(QUrl.fromLocalFile(os.path.abspath(html_path)))
-    view.setWindowTitle("NeuroSync v2.0.4")
+    view.setWindowTitle("NeuroSync v2.0.5")
     view.resize(1200, 800)
     view.show()
 

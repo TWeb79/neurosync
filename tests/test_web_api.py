@@ -56,6 +56,21 @@ class TestWebAPI:
         data = response.json()
         assert "segments" in data
 
+    def test_start_session_invalid(self, client):
+        response = client.post("/api/session/unknown_preset")
+        assert response.status_code == 404
+
+    def test_set_frequency(self, client):
+        response = client.post("/api/frequency")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "updated"
+
+    def test_get_timeline_unknown(self, client):
+        response = client.get("/api/timeline/unknown")
+        assert response.status_code == 200
+        assert response.json()["segments"] == []
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

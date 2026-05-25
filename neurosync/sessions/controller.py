@@ -218,6 +218,20 @@ class SessionController:
         self._transition_progress = 0.0
 
     def load_preset(self, preset_name: str) -> Preset:
+        """Load a session preset by name.
+
+        Args:
+            preset_name: Name of the preset to load
+
+        Returns:
+            The preset configuration
+
+        Raises:
+            KeyError: If preset_name is not found in PRESETS registry
+        """
+        if preset_name not in PRESETS:
+            available = ", ".join(sorted(PRESETS.keys()))
+            raise KeyError(f"Unknown preset '{preset_name}'. Available: {available}")
         preset = PRESETS[preset_name]
         self.current_preset = preset
         if self.state_changed:

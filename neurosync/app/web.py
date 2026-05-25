@@ -4,10 +4,10 @@ Author: Inventions4All - github:TWeb79
 """
 
 import os
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 
-app = FastAPI(title="NeuroSync v2.0.4")
+app = FastAPI(title="NeuroSync v2.0.5")
 
 try:
     import socketio
@@ -39,7 +39,7 @@ def _get_html() -> str:
 @app.get("/api/status")
 def get_status():
     """Get current session status."""
-    return {"version": "2.0.4", "is_playing": False, "current_preset": None, "session_elapsed": 0}
+    return {"version": "2.0.5", "is_playing": False, "current_preset": None, "session_elapsed": 0}
 
 
 @app.post("/api/session/stop")
@@ -50,7 +50,21 @@ def stop_session():
 
 @app.post("/api/session/{preset_name}")
 def start_session(preset_name: str):
-    """Start a session with the given preset."""
+    """Start a session with the given preset.
+    
+    Args:
+        preset_name: Name of the preset to start
+        
+    Raises:
+        HTTPException(404): If preset_name is not found in PRESETS registry
+    """
+    from neurosync.sessions.controller import PRESETS
+    
+    if preset_name not in PRESETS:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Unknown preset '{preset_name}'. Available: {', '.join(sorted(PRESETS.keys()))}"
+        )
     return {"preset": preset_name, "status": "active", "message": f"Session {preset_name} started"}
 
 

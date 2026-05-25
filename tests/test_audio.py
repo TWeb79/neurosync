@@ -186,6 +186,30 @@ class TestAudioEngine:
         engine.stop()  # Should not raise error
         assert engine._stream is None
 
+    def test_set_frequencies_invalid_carrier(self):
+        """Test setting frequencies with invalid carrier."""
+        engine = AudioEngine()
+        with pytest.raises(ValueError, match="Carrier frequency must be positive"):
+            engine.set_frequencies(-10.0, 10.0)
+
+    def test_set_frequencies_invalid_carrier_range(self):
+        """Test setting frequencies with carrier out of range."""
+        engine = AudioEngine()
+        with pytest.raises(ValueError, match="Carrier frequency exceeds safe range"):
+            engine.set_frequencies(25000.0, 10.0)
+
+    def test_set_frequencies_invalid_beat(self):
+        """Test setting frequencies with invalid beat."""
+        engine = AudioEngine()
+        with pytest.raises(ValueError, match="Beat frequency must be positive"):
+            engine.set_frequencies(220.0, -5.0)
+
+    def test_set_frequencies_invalid_beat_range(self):
+        """Test setting frequencies with beat out of range."""
+        engine = AudioEngine()
+        with pytest.raises(ValueError, match="Beat frequency exceeds safe range"):
+            engine.set_frequencies(220.0, 150.0)
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

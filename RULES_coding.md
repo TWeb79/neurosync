@@ -266,6 +266,7 @@ tests/
     test_services.py
 
 Tests must run locally before commits.
+Testing must have an 80%+ coverage.
 
 ---
 

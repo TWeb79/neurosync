@@ -3,6 +3,8 @@ Audio MIDI Controller
 Author: Inventions4All - github:TWeb79
 """
 
+from typing import Any, Optional
+
 try:
     import rtmidi
     MIDI_AVAILABLE = True
@@ -19,9 +21,14 @@ class MidiController:
     CC_LAYER_ISO = 21
     CC_LAYER_AMBIENT = 22
 
-    def __init__(self, dsp_bridge=None):
+    def __init__(self, dsp_bridge: Optional[Any] = None) -> None:
+        """Initialize MIDI controller.
+        
+        Args:
+            dsp_bridge: Optional DSP bridge for controlling parameters.
+        """
         self.dsp_bridge = dsp_bridge
-        self._midi_in = None
+        self._midi_in: Optional[Any] = None
         if MIDI_AVAILABLE:
             self._midi_in = rtmidi.MidiIn()
             ports = self._midi_in.get_ports()
