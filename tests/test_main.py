@@ -5,7 +5,14 @@ Author: Inventions4All - github:TWeb79
 
 import pytest
 import sys
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, Mock
+
+# Mock PySide6 modules before importing main
+sys.modules['PySide6'] = Mock()
+sys.modules['PySide6.QtWidgets'] = Mock()
+sys.modules['PySide6.QtWebEngineWidgets'] = Mock()
+sys.modules['PySide6.QtCore'] = Mock()
+
 from neurosync.app.main import main
 
 

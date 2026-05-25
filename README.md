@@ -1,6 +1,6 @@
 # NeuroSync - Adaptive Brainwave Audio Studio
 
-**Version:** 2.0.3 (2026-05-25)  
+**Version:** 2.0.4 (2026-05-25)  
 **Author:** Inventions4All - github:TWeb79
 
 A desktop audio application combining binaural beats, isochronic tones, and adaptive frequency entrainment with immersive visualizations.
